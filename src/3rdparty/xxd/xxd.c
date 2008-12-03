@@ -47,6 +47,7 @@
  * 26.09.98 Fixed: 'xxd -i infile outfile' did not truncate outfile.
  * 27.10.98 Fixed: -g option parser required blank.
  *          option -b added: 01000101 binary output in normal format.
+ * 03.12.2008 Added parsing of XXD_OPTIONS environment variable. (jasaethe@trolltech.com)
  *
  * (c) 1990-1998 by Juergen Weigert (jnweiger@informatik.uni-erlangen.de)
  *
@@ -185,29 +186,31 @@ static void
 exit_with_usage(pname)
 char *pname;
 {
-  fprintf(stderr, "Usage:\n       %s [options] [infile [outfile]]\n", pname);
-  fprintf(stderr, "    or\n       %s -r [-s [-]offset] [-c cols] [-ps] [infile [outfile]]\n", pname);
-  fprintf(stderr, "Options:\n");
-  fprintf(stderr, "    -a          toggle autoskip: A single '*' replaces nul-lines. Default off.\n");
-  fprintf(stderr, "    -b          binary digit dump (incompatible with -p,-i,-r). Default hex.\n");
-  fprintf(stderr, "    -c cols     format <cols> octets per line. Default 16 (-i: 12, -ps: 30).\n");
-  fprintf(stderr, "    -E          show characters in EBCDIC. Default ASCII.\n");
-  fprintf(stderr, "    -g          number of octets per group in normal output. Default 2.\n");
-  fprintf(stderr, "    -h          print this summary.\n");
-  fprintf(stderr, "    -i          output in C include file style.\n");
-  fprintf(stderr, "    -l len      stop after <len> octets.\n");
-  fprintf(stderr, "    -ps         output in postscript plain hexdump style.\n");
-  fprintf(stderr, "    -r          reverse operation: convert (or patch) hexdump into binary.\n");
-  fprintf(stderr, "    -r -s off   revert with <off> added to file positions found in hexdump.\n");
-  fprintf(stderr, "    -s %sseek  start at <seek> bytes abs. %sinfile offset.\n",
+    fprintf(stderr, "Usage:\n       %s [options] [infile [outfile]]\n", pname);
+    fprintf(stderr, "    or\n       %s -r [-s [-]offset] [-c cols] [-ps] [infile [outfile]]\n", pname);
+    fprintf(stderr, "Options:\n");
+    fprintf(stderr, "    -a          toggle autoskip: A single '*' replaces nul-lines. Default off.\n");
+    fprintf(stderr, "    -b          binary digit dump (incompatible with -p,-i,-r). Default hex.\n");
+    fprintf(stderr, "    -c cols     format <cols> octets per line. Default 16 (-i: 12, -ps: 30).\n");
+    fprintf(stderr, "    -E          show characters in EBCDIC. Default ASCII.\n");
+    fprintf(stderr, "    -g          number of octets per group in normal output. Default 2.\n");
+    fprintf(stderr, "    -h          print this summary.\n");
+    fprintf(stderr, "    -i          output in C include file style.\n");
+    fprintf(stderr, "    -l len      stop after <len> octets.\n");
+    fprintf(stderr, "    -ps         output in postscript plain hexdump style.\n");
+    fprintf(stderr, "    -r          reverse operation: convert (or patch) hexdump into binary.\n");
+    fprintf(stderr, "    -r -s off   revert with <off> added to file positions found in hexdump.\n");
+    fprintf(stderr, "    -s %sseek  start at <seek> bytes abs. %sinfile offset.\n",
 #ifdef TRY_SEEK
-	  "[+][-]", "(or +: rel.) ");
+    "[+][-]", "(or +: rel.) ");
 #else
-	  "", "");
+    "", "");
 #endif
-  fprintf(stderr, "    -u          use upper case hex letters.\n");
-  fprintf(stderr, "    -v          show version: \"%s%s\".\n", version, osver);
-  exit(1);
+    fprintf(stderr, "    -u          use upper case hex letters.\n");
+    fprintf(stderr, "    -v          show version: \"%s%s\".\n", version, osver);
+    fprintf(stderr, "Environment:\n");
+    fprintf(stderr, "    Set XXD_OPTIONS to change defaults. (Same syntax as commandline)\n");
+    exit(1);
 }
 
 /*
@@ -224,99 +227,99 @@ char *pname;
 int cols, hextype;
 long base_off;
 {
-  int c, ign_garb = 1, n1 = -1, n2 = 0, n3, p = cols;
-  long have_off = 0, want_off = 0;
+    int c, ign_garb = 1, n1 = -1, n2 = 0, n3, p = cols;
+    long have_off = 0, want_off = 0;
 
-  rewind(fpi);
+    rewind(fpi);
 
-  while ((c = getc(fpi)) != EOF)
+    while ((c = getc(fpi)) != EOF)
     {
-      if (c == '\r')	/* Doze style input file? */
+        if (c == '\r')	/* Doze style input file? */
         continue;
 
-      n3 = n2;
-      n2 = n1;
+        n3 = n2;
+        n2 = n1;
 
-      if (c >= '0' && c <= '9')
+        if (c >= '0' && c <= '9')
         n1 = c - '0';
-      else if (c >= 'a' && c <= 'f')
+        else if (c >= 'a' && c <= 'f')
         n1 = c - 'a' + 10;
-      else if (c >= 'A' && c <= 'F')
+        else if (c >= 'A' && c <= 'F')
         n1 = c - 'A' + 10;
-      else
+        else
         {
-          n1 = -1;
-	  if (ign_garb)
-	    continue;
-	}
+            n1 = -1;
+            if (ign_garb)
+            continue;
+        }
 
-      ign_garb = 0;
+        ign_garb = 0;
 
-      if (p >= cols)
-	{
-	  if (!hextype)
-	    {
-	      if (n1 < 0)
-		{
-		  p = 0;
-		  continue;
-		}
-	      want_off = (want_off << 4) | n1;
-	      continue;
-	    }
-	  else
-	    p = 0;
-	}
-
-      if (base_off + want_off != have_off)
+        if (p >= cols)
         {
-	  fflush(fpo);
+            if (!hextype)
+            {
+                if (n1 < 0)
+                {
+                    p = 0;
+                    continue;
+                }
+                want_off = (want_off << 4) | n1;
+                continue;
+            }
+            else
+            p = 0;
+        }
+
+        if (base_off + want_off != have_off)
+        {
+            fflush(fpo);
 #ifdef TRY_SEEK
-	  c = fseek(fpo, base_off + want_off - have_off, 1);
-	  if (c >= 0)
-	    have_off = base_off + want_off;
+            c = fseek(fpo, base_off + want_off - have_off, 1);
+            if (c >= 0)
+            have_off = base_off + want_off;
 #endif
-	  if (base_off + want_off < have_off)
-	    {
-	      fprintf(fperr, "%s: sorry, cannot seek backwards.\n", pname);
-	      return 5;
-	    }
-	  for (; have_off < base_off + want_off; have_off++)
-	    putc(0, fpo);
-	}
+            if (base_off + want_off < have_off)
+            {
+                fprintf(fperr, "%s: sorry, cannot seek backwards.\n", pname);
+                return 5;
+            }
+            for (; have_off < base_off + want_off; have_off++)
+            putc(0, fpo);
+        }
 
-      if (n2 >= 0 && n1 >= 0)
+        if (n2 >= 0 && n1 >= 0)
         {
-	  putc((n2 << 4) | n1, fpo);
-	  have_off++;
-	  want_off++;
-	  n1 = -1;
-	  if ((++p >= cols) && !hextype)
-	    {
-	      /* skip rest of line as garbaga */
-	      want_off = 0;
-	      while ((c = getc(fpi)) != '\n' && c != EOF)
-	        ;
-	      ign_garb = 1;
-	    }
-	}
-      else if (n1 < 0 && n2 < 0 && n3 < 0)
+            putc((n2 << 4) | n1, fpo);
+            have_off++;
+            want_off++;
+            n1 = -1;
+            if ((++p >= cols) && !hextype)
+            {
+                /* skip rest of line as garbaga */
+                want_off = 0;
+                while ((c = getc(fpi)) != '\n' && c != EOF)
+                ;
+                ign_garb = 1;
+            }
+        }
+        else if (n1 < 0 && n2 < 0 && n3 < 0)
         {
-	  /* already stumbled into garbage, skip line, wait and see */
-	  if (!hextype)
-	    want_off = 0;
-	  while ((c = getc(fpi)) != '\n' && c != EOF)
-	    ;
-	  ign_garb = 1;
-	}
+            /* already stumbled into garbage, skip line, wait and see */
+            if (!hextype)
+            want_off = 0;
+            while ((c = getc(fpi)) != '\n' && c != EOF)
+            ;
+            ign_garb = 1;
+        }
     }
-  fflush(fpo);
+    fflush(fpo);
 #ifdef TRY_SEEK
-  fseek(fpo, 0L, 2);
+    fseek(fpo, 0L, 2);
 #endif
-  fclose(fpo);
-  fclose(fpi);
-  return 0;
+    fclose(fpo);
+    fclose(fpi);
+    return 0;
 }
 
 /*
@@ -337,27 +340,27 @@ FILE *fp;
 char *l;
 int nz;
 {
-  static char z[LLEN+1];
-  static int zero_seen = 0;
+    static char z[LLEN+1];
+    static int zero_seen = 0;
 
-  if (!nz && zero_seen == 1)
+    if (!nz && zero_seen == 1)
     strcpy(z, l);
 
-  if (nz || !zero_seen++)
+    if (nz || !zero_seen++)
     {
-      if (nz)
-	{
-	  if (nz < 0)
-	    zero_seen--;
-	  if (zero_seen == 2)
-	    fputs(z, fp);
-	  if (zero_seen > 2)
-	    fputs("*\n", fp);
-	}
-      if (nz >= 0 || zero_seen > 0)
+        if (nz)
+        {
+            if (nz < 0)
+            zero_seen--;
+            if (zero_seen == 2)
+            fputs(z, fp);
+            if (zero_seen > 2)
+            fputs("*\n", fp);
+        }
+        if (nz >= 0 || zero_seen > 0)
         fputs(l, fp);
-      if (nz)
-	zero_seen = 0;
+        if (nz)
+        zero_seen = 0;
     }
 }
 
@@ -396,326 +399,355 @@ main(argc, argv)
 int argc;
 char *argv[];
 {
-  FILE *fp, *fpo;
-  int c, e, p = 0, relseek = 1, negseek = 0, revert = 0;
-  int cols = 0, nonzero = 0, autoskip = 0, hextype = HEX_NORMAL;
-  int ebcdic = 0;
-  int octspergrp = -1;	/* number of octets grouped in output */
-  int grplen;		/* total chars per octet group */
-  long length = -1, n = 0, seekoff = 0;
-  char l[LLEN+1];
-  char *pname, *pp;
+    FILE *fp, *fpo;
+    int c, e, p = 0, relseek = 1, negseek = 0, revert = 0;
+    int cols = 0, nonzero = 0, autoskip = 0, hextype = HEX_NORMAL;
+    int ebcdic = 0;
+    int octspergrp = -1;  /* number of octets grouped in output */
+    int grplen;		/* total chars per octet group */
+    long length = -1, n = 0, seekoff = 0;
+    char l[LLEN+1];
+    char *pname, *pp;
+    int ii = 0;
+    char *env_options;
+    char **arguments;
+    int argcount;
 
 #ifdef AMIGA
-  /* This program doesn't work when started from the Workbench */
-  if (argc == 0)
+    /* This program doesn't work when started from the Workbench */
+    if (argc == 0)
     exit(1);
 #endif
 
-  pname = argv[0];
-  for (pp = pname; *pp; )
-    if (*pp++ == PATH_SEP)
-      pname = pp;
+    env_options = getenv("XXD_OPTIONS");
+    arguments = (char **)malloc(sizeof(char *) * 30);
+    argcount = 0;
+    arguments[argcount++] = argv[0];
 
-  while (argc >= 2)
+    if (env_options) {
+        while (*env_options && argcount < 30) {
+            while (*env_options && *env_options == ' ')
+                ++env_options;
+            arguments[argcount++] = env_options;
+            while (*env_options && *env_options != ' ') {
+                ++env_options;
+            }
+            if (*env_options) {
+                *env_options = '\0';
+                ++env_options;
+            }
+        }
+    }
+    
+    /* append the arguments supplied by the command line. (they will override) */
+    for (ii = 1; ii < argc && argcount < 30; ++ii) {
+        arguments[argcount++] = argv[ii];
+    }
+
+    pname = arguments[0];
+    for (pp = pname; *pp; )
+    if (*pp++ == PATH_SEP)
+    pname = pp;
+
+    while (argcount >= 2)
     {
-      pp = argv[1] + (!STRNCMP(argv[1], "--", 2) && argv[1][2]);
-           if (!STRNCMP(pp, "-a", 2)) autoskip = 1 - autoskip;
-      else if (!STRNCMP(pp, "-b", 2)) hextype = HEX_BITS;
-      else if (!STRNCMP(pp, "-u", 2)) hexx = hexxa + 16;
-      else if (!STRNCMP(pp, "-p", 2)) hextype = HEX_POSTSCRIPT;
-      else if (!STRNCMP(pp, "-i", 2)) hextype = HEX_CINCLUDE;
-      else if (!STRNCMP(pp, "-r", 2)) revert++;
-      else if (!STRNCMP(pp, "-E", 2)) ebcdic++;
-      else if (!STRNCMP(pp, "-v", 2))
+        pp = arguments[1] + (!STRNCMP(arguments[1], "--", 2) && arguments[1][2]);
+        if (!STRNCMP(pp, "-a", 2)) autoskip = 1 - autoskip;
+        else if (!STRNCMP(pp, "-b", 2)) hextype = HEX_BITS;
+        else if (!STRNCMP(pp, "-u", 2)) hexx = hexxa + 16;
+        else if (!STRNCMP(pp, "-p", 2)) hextype = HEX_POSTSCRIPT;
+        else if (!STRNCMP(pp, "-i", 2)) hextype = HEX_CINCLUDE;
+        else if (!STRNCMP(pp, "-r", 2)) revert++;
+        else if (!STRNCMP(pp, "-E", 2)) ebcdic++;
+        else if (!STRNCMP(pp, "-v", 2))
         {
-	  fprintf(stderr, "%s%s\n", version, osver);
-	  exit(0);
-	}
-      else if (!STRNCMP(pp, "-c", 2))
-	{
-	  if (pp[2] && STRNCMP("ols", pp + 2, 3))
-	    cols = (int)strtol(pp + 2, NULL, 0);
-	  else
-	    {
-	      if (!argv[2])
-	        exit_with_usage(pname);
-	      cols = (int)strtol(argv[2], NULL, 0);
-	      argv++;
-	      argc--;
-	    }
-	}
-      else if (!STRNCMP(pp, "-g", 2))
+            fprintf(stderr, "%s%s\n", version, osver);
+            exit(0);
+        }
+        else if (!STRNCMP(pp, "-c", 2))
         {
-	  if (pp[2] && STRNCMP("group", pp + 2, 5))
-	    octspergrp = (int)strtol(pp + 2, NULL, 0);
-	  else
-	    {
-	      if (!argv[2])
-		exit_with_usage(pname);
-	      octspergrp = (int)strtol(argv[2], NULL, 0);
-	      argv++;
-	      argc--;
-	    }
-	}
-      else if (!STRNCMP(pp, "-s", 2))
-	{
-	  relseek = 0;
-	  negseek = 0;
-	  if (pp[2] && STRNCMP("kip", pp+2, 3) && STRNCMP("eek", pp+2, 3))
-	    {
+            if (pp[2] && STRNCMP("ols", pp + 2, 3))
+            cols = (int)strtol(pp + 2, NULL, 0);
+            else
+            {
+                if (!arguments[2])
+                exit_with_usage(pname);
+                cols = (int)strtol(arguments[2], NULL, 0);
+                arguments++;
+                argcount--;
+            }
+        }
+        else if (!STRNCMP(pp, "-g", 2))
+        {
+            if (pp[2] && STRNCMP("group", pp + 2, 5))
+                octspergrp = (int)strtol(pp + 2, NULL, 0);
+            else
+            {
+                if (!arguments[2])
+                exit_with_usage(pname);
+                octspergrp = (int)strtol(arguments[2], NULL, 0);
+                arguments++;
+                argcount--;
+            }
+        }
+        else if (!STRNCMP(pp, "-s", 2))
+        {
+            relseek = 0;
+            negseek = 0;
+            if (pp[2] && STRNCMP("kip", pp+2, 3) && STRNCMP("eek", pp+2, 3))
+            {
 #ifdef TRY_SEEK
-	      if (pp[2] == '+')
-	        relseek++;
-	      if (pp[2+relseek] == '-')
-	        negseek++;
+                if (pp[2] == '+')
+                relseek++;
+                if (pp[2+relseek] == '-')
+                negseek++;
 #endif
-	      seekoff = strtol(pp + 2+relseek+negseek, (char **)NULL, 0);
-	    }
-	  else
-	    {
-	      if (!argv[2])
-	        exit_with_usage(pname);
+                seekoff = strtol(pp + 2+relseek+negseek, (char **)NULL, 0);
+            }
+            else
+            {
+                if (!arguments[2])
+                exit_with_usage(pname);
 #ifdef TRY_SEEK
-	      if (argv[2][0] == '+')
-	        relseek++;
-	      if (argv[2][relseek] == '-')
-	        negseek++;
+                if (arguments[2][0] == '+')
+                relseek++;
+                if (arguments[2][relseek] == '-')
+                negseek++;
 #endif
-	      seekoff = strtol(argv[2] + relseek+negseek, (char **)NULL, 0);
-	      argv++;
-	      argc--;
-	    }
-	}
-      else if (!STRNCMP(pp, "-l", 2))
-	{
-	  if (pp[2] && STRNCMP("en", pp + 2, 2))
-	    length = strtol(pp + 2, (char **)NULL, 0);
-	  else
-	    {
-	      if (!argv[2])
-	        exit_with_usage(pname);
-	      length = strtol(argv[2], (char **)NULL, 0);
-	      argv++;
-	      argc--;
-	    }
-	}
-      else if (!strcmp(pp, "--"))	/* end of options */
+                seekoff = strtol(arguments[2] + relseek+negseek, (char **)NULL, 0);
+                arguments++;
+                argcount--;
+            }
+        }
+        else if (!STRNCMP(pp, "-l", 2))
         {
-	  argv++;
-	  argc--;
-	  break;
-	}
-      else if (pp[0] == '-' && pp[1])	/* unknown option */
+            if (pp[2] && STRNCMP("en", pp + 2, 2))
+            length = strtol(pp + 2, (char **)NULL, 0);
+            else
+            {
+                if (!arguments[2])
+                exit_with_usage(pname);
+                length = strtol(arguments[2], (char **)NULL, 0);
+                arguments++;
+                argcount--;
+            }
+        }
+        else if (!strcmp(pp, "--"))	/* end of options */
+        {
+            arguments++;
+            argcount--;
+            break;
+        }
+        else if (pp[0] == '-' && pp[1])	/* unknown option */
         exit_with_usage(pname);
-      else
+        else
         break;				/* not an option */
 
-      argv++;				/* advance to next argument */
-      argc--;
+        arguments++;				/* advance to next argument */
+        argcount--;
     }
-  
-  if (!cols)
-    switch (hextype)
-      {
-      case HEX_POSTSCRIPT: 	cols = 30; break;
-      case HEX_CINCLUDE:	cols = 12; break;
-      case HEX_BITS:		cols = 6; break;
-      case HEX_NORMAL:
-      default:			cols = 16; break;
-      }
-  
-  if (octspergrp < 0)
-    switch (hextype)
-      {
-      case HEX_BITS:		octspergrp = 1; break;
-      case HEX_NORMAL:		octspergrp = 2; break;
-      case HEX_POSTSCRIPT:
-      case HEX_CINCLUDE:
-      default:			octspergrp = 0; break;
-      }
 
-  if (cols < 1 || (!hextype && (cols > COLS)))
+    if (!cols)
+    switch (hextype)
     {
-      fprintf(stderr, "%s: invalid number of columns (max. %d).\n", pname, COLS);
-      exit(1);
+    case HEX_POSTSCRIPT: 	cols = 30; break;
+    case HEX_CINCLUDE:	cols = 12; break;
+    case HEX_BITS:		cols = 6; break;
+    case HEX_NORMAL:
+    default:			cols = 16; break;
     }
 
-  if (octspergrp < 1)
+    if (octspergrp < 0)
+    switch (hextype)
+    {
+    case HEX_BITS:		octspergrp = 1; break;
+    case HEX_NORMAL:		octspergrp = 2; break;
+    case HEX_POSTSCRIPT:
+    case HEX_CINCLUDE:
+    default:			octspergrp = 0; break;
+    }
+
+    if (cols < 1 || (!hextype && (cols > COLS)))
+    {
+        fprintf(stderr, "%s: invalid number of columns (max. %d).\n", pname, COLS);
+        exit(1);
+    }
+
+    if (octspergrp < 1)
     octspergrp = cols;
 
-  if (argc > 3)
+    if (argcount > 3)
     exit_with_usage(pname);
 
-  if (argc == 1 || (argv[1][0] == '-' && !argv[1][1]))
+    if (argcount == 1 || (arguments[1][0] == '-' && !arguments[1][1]))
     BIN_ASSIGN(fp = stdin, !revert);
-  else
+    else
     {
-      if ((fp = fopen(argv[1], BIN_READ(!revert))) == NULL)
-	{
-	  fprintf(stderr,"%s: ", pname);
-	  perror(argv[1]);
-	  return 2;
-	}
-    }
-
-  if (argc < 3 || (argv[2][0] == '-' && !argv[2][1]))
-    BIN_ASSIGN(fpo = stdout, revert);
-  else
-    {
-      int fd;
-      int mode = revert ? O_WRONLY : (O_TRUNC|O_WRONLY);
-
-      if (((fd = OPEN(argv[2], mode | BIN_CREAT(revert), 0666)) < 0) ||
-          (fpo = fdopen(fd, BIN_WRITE(revert))) == NULL)
-	{
-	  fprintf(stderr, "%s: ", pname);
-	  perror(argv[2]);
-	  return 3;
-	}
-      rewind(fpo);
-    }
-
-  if (revert)
-    {
-      if (hextype && (hextype != HEX_POSTSCRIPT))
+        if ((fp = fopen(arguments[1], BIN_READ(!revert))) == NULL)
         {
-          fprintf(stderr, "%s: sorry, cannot revert this type of hexdump\n", pname);
-	  return -1;
-	}
-      return huntype(fp, fpo, stderr, pname, cols, hextype,
-      		negseek ? -seekoff : seekoff);
+            fprintf(stderr,"%s: ", pname);
+            perror(arguments[1]);
+            return 2;
+        }
     }
 
-  if (seekoff || negseek || !relseek)
+    if (argcount < 3 || (arguments[2][0] == '-' && !arguments[2][1]))
+    BIN_ASSIGN(fpo = stdout, revert);
+    else
+    {
+        int fd;
+        int mode = revert ? O_WRONLY : (O_TRUNC|O_WRONLY);
+
+        if (((fd = OPEN(arguments[2], mode | BIN_CREAT(revert), 0666)) < 0) ||
+                (fpo = fdopen(fd, BIN_WRITE(revert))) == NULL)
+        {
+            fprintf(stderr, "%s: ", pname);
+            perror(arguments[2]);
+            return 3;
+        }
+        rewind(fpo);
+    }
+
+    if (revert)
+    {
+        if (hextype && (hextype != HEX_POSTSCRIPT))
+        {
+            fprintf(stderr, "%s: sorry, cannot revert this type of hexdump\n", pname);
+            return -1;
+        }
+        return huntype(fp, fpo, stderr, pname, cols, hextype,
+        negseek ? -seekoff : seekoff);
+    }
+
+    if (seekoff || negseek || !relseek)
     {
 #ifdef TRY_SEEK
-      if (relseek)
+        if (relseek)
         e = fseek(fp, negseek ? -seekoff : seekoff, 1);
-      else
+        else
         e = fseek(fp, negseek ? -seekoff : seekoff, negseek ? 2 : 0);
-      if (e < 0 && negseek)
+        if (e < 0 && negseek)
         {
-	  fprintf(stderr, "%s: sorry cannot seek.\n", pname);
-	  return 4;
-	}
-      if (e >= 0)
+            fprintf(stderr, "%s: sorry cannot seek.\n", pname);
+            return 4;
+        }
+        if (e >= 0)
         seekoff = ftell(fp);
-      else
+        else
 #endif
-	{
-	  long s = seekoff;
+        {
+            long s = seekoff;
 
-	  while (s--)
-	    getc(fp);
-	}
+            while (s--)
+            getc(fp);
+        }
     }
 
-  if (hextype == HEX_CINCLUDE)
+    if (hextype == HEX_CINCLUDE)
     {
-      if (fp != stdin)
-	{
-	  fprintf(fpo, "unsigned char %s", isdigit(argv[1][0]) ? "__" : "");
-	  for (e = 0; (c = argv[1][e]) != 0; e++)
-	    putc(isalnum(c) ? c : '_', fpo);
-	  fputs("[] = {\n", fpo);
-	}
+        if (fp != stdin)
+        {
+            fprintf(fpo, "unsigned char %s", isdigit(arguments[1][0]) ? "__" : "");
+            for (e = 0; (c = arguments[1][e]) != 0; e++)
+            putc(isalnum(c) ? c : '_', fpo);
+            fputs("[] = {\n", fpo);
+        }
 
-      p = 0;
-      while ((length < 0 || p < length) && (c = getc(fp)) != EOF)
-	{
-	  fprintf(fpo, (hexx == hexxa) ? "%s0x%02x" : "%s0X%02X",
-	    (p % cols) ? ", " : ",\n  "+2*!p,  c);
-	  p++;
-	}
+        p = 0;
+        while ((length < 0 || p < length) && (c = getc(fp)) != EOF)
+        {
+            fprintf(fpo, (hexx == hexxa) ? "%s0x%02x" : "%s0X%02X",
+            (p % cols) ? ", " : ",\n  "+2*!p,  c);
+            p++;
+        }
 
-      if (p)
+        if (p)
         fputs("\n};\n"+3*(fp == stdin), fpo);
 
-      if (fp != stdin)
-	{
-	  fprintf(fpo, "unsigned int %s", isdigit(argv[1][0]) ? "__" : "");
-	  for (e = 0; (c = argv[1][e]) != 0; e++)
-	    putc(isalnum(c) ? c : '_', fpo);
-	  fprintf(fpo, "_len = %d;\n", p);
-	}
+        if (fp != stdin)
+        {
+            fprintf(fpo, "unsigned int %s", isdigit(arguments[1][0]) ? "__" : "");
+            for (e = 0; (c = arguments[1][e]) != 0; e++)
+            putc(isalnum(c) ? c : '_', fpo);
+            fprintf(fpo, "_len = %d;\n", p);
+        }
 
-      fclose(fp);
-      fclose(fpo);
-      return 0;
+        fclose(fp);
+        fclose(fpo);
+        return 0;
     }
 
-  if (hextype == HEX_POSTSCRIPT)
+    if (hextype == HEX_POSTSCRIPT)
     {
-      p = cols;
-      while ((length < 0 || n < length) && (e = getc(fp)) != EOF)
-	{
-          putchar(hexx[(e >> 4) & 0xf]);
-          putchar(hexx[(e     ) & 0xf]);
-	  n++;
-	  if (!--p)
-	    {
-	      putchar('\n');
-	      p = cols;
-	    }
-	}
-      if (p < cols)
-	putchar('\n');
-      fclose(fp);
-      fclose(fpo);
-      return 0;
+        p = cols;
+        while ((length < 0 || n < length) && (e = getc(fp)) != EOF)
+        {
+            putchar(hexx[(e >> 4) & 0xf]);
+            putchar(hexx[(e     ) & 0xf]);
+            n++;
+            if (!--p)
+            {
+                putchar('\n');
+                p = cols;
+            }
+        }
+        if (p < cols)
+        putchar('\n');
+        fclose(fp);
+        fclose(fpo);
+        return 0;
     }
 
-  /* hextype: HEX_NORMAL or HEX_BITS */
+    /* hextype: HEX_NORMAL or HEX_BITS */
 
-  if (hextype == HEX_NORMAL)
+    if (hextype == HEX_NORMAL)
     grplen = octspergrp + octspergrp + 1;	/* chars per octet group */
-  else 	/* hextype == HEX_BITS */
+    else 	/* hextype == HEX_BITS */
     grplen = 8 * octspergrp + 1;
 
-  while ((length < 0 || n < length) && (e = getc(fp)) != EOF)
+    while ((length < 0 || n < length) && (e = getc(fp)) != EOF)
     {
-      if (p == 0)
-	{
-	  sprintf(l, "%07lx: ", n + seekoff);
-	  for (c = 9; c < LLEN; l[c++] = ' ');
-	}
-      if (hextype == HEX_NORMAL)
-	{
-	  l[c = (9 + (grplen * p) / octspergrp)] = hexx[(e >> 4) & 0xf];
-	  l[++c]                               = hexx[ e       & 0xf];
-	}
-      else /* hextype == HEX_BITS */
+        if (p == 0)
         {
-	  int i;
+            sprintf(l, "%07lx: ", n + seekoff);
+            for (c = 9; c < LLEN; l[c++] = ' ');
+        }
+        if (hextype == HEX_NORMAL)
+        {
+            l[c = (9 + (grplen * p) / octspergrp)] = hexx[(e >> 4) & 0xf];
+            l[++c]                               = hexx[ e       & 0xf];
+        }
+        else /* hextype == HEX_BITS */
+        {
+            int i;
 
-	  c = (9 + (grplen * p) / octspergrp) - 1;
-	  for (i = 7; i >= 0; i--)
-	    l[++c] = (e & (1 << i)) ? '1' : '0';
-	}
-      if (ebcdic) 
+            c = (9 + (grplen * p) / octspergrp) - 1;
+            for (i = 7; i >= 0; i--)
+            l[++c] = (e & (1 << i)) ? '1' : '0';
+        }
+        if (ebcdic) 
         e = (e < 64) ? '.' : etoa64[e-64];
-      l[11 + (grplen * cols - 1)/octspergrp + p] = (e > 31 && e < 127) ? e : '.';
-      if (e)
+        l[11 + (grplen * cols - 1)/octspergrp + p] = (e > 31 && e < 127) ? e : '.';
+        if (e)
         nonzero++;
-      n++;
-      if (++p == cols)
-	{
-	  l[c = (11 + (grplen * cols - 1)/octspergrp + p)] = '\n'; l[++c] = '\0';
-	  xxdline(fpo, l, autoskip ? nonzero : 1);
-	  nonzero = 0;
-	  p = 0;
-	}
+        n++;
+        if (++p == cols)
+        {
+            l[c = (11 + (grplen * cols - 1)/octspergrp + p)] = '\n'; l[++c] = '\0';
+            xxdline(fpo, l, autoskip ? nonzero : 1);
+            nonzero = 0;
+            p = 0;
+        }
     }
-  if (p)
+    if (p)
     {
-      l[c = (11 + (grplen * cols - 1)/octspergrp + p)] = '\n'; l[++c] = '\0';
-      xxdline(fpo, l, 1);
+        l[c = (11 + (grplen * cols - 1)/octspergrp + p)] = '\n'; l[++c] = '\0';
+        xxdline(fpo, l, 1);
     }
-  else if (autoskip)
+    else if (autoskip)
     xxdline(fpo, l, -1);	/* last chance to flush out supressed lines */
 
-  fclose(fp);
-  fclose(fpo);
-  return 0;
+    fclose(fp);
+    fclose(fpo);
+    return 0;
 }
