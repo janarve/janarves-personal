@@ -8,6 +8,17 @@ SETLOCAL
 IF "_%1_" == "_/?_" (
     goto usage
 )
+
+set NPP=C:\PROGRA~1\NOTEPA~1\NOTEPA~1.exe
+
+IF "%EDITOR%" NEQ "" (
+    set NPP=%EDITOR%
+)
+
+IF not exist %NPP% (
+    echo Could not find %NPP%, please set the EDITOR environment variable
+    goto :EOF
+)
 REM SET VV=%1
 REM -- Split the date into weekday, month, day, and year, using slash and space as delimiters
 for /f "tokens=1,2,3 delims=:" %%a in ("%1") do set FILENAME=%%a&set LINEINFILE=%%b&set LINEINFILE2=%%c
@@ -25,18 +36,21 @@ REM     this case: "c:\a.txt:122"
 )
 :no_case2
 
+IF "%1" == "" (
+    goto skip
+)
 SET TMP_ARG=%1
 IF "%TMP_ARG:~1,1%" NEQ ":" goto skip
 REM     this case: "c:\a.txt"
-    set FILENAME=%1
-    set LINEINFILE=
-    set LINEINFILE2=
+set FILENAME=%1
+set LINEINFILE=
+set LINEINFILE2=
 :skip
 
 IF "_%LINEINFILE%_" EQU "__" (
-    C:\PROGRA~1\NOTEPA~1\NOTEPA~1.exe %*
+    start /b %NPP% %*
 ) else (
-    C:\PROGRA~1\NOTEPA~1\NOTEPA~1.exe -n%LINEINFILE% %FILENAME%
+    start /b %NPP% -n%LINEINFILE% %FILENAME%
 )
 
 goto :EOF
