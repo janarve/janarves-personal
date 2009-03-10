@@ -2,6 +2,7 @@
 @REM Small wrapper batch file for opening files with Notepad++.
 @REM  jan-arve.saether@nokia.com
 @REM 
+@REM does not work if EDITOR contains parentheses
 @echo off
 
 SETLOCAL
@@ -11,16 +12,17 @@ IF "_%1_" == "_/?_" (
 
 set NPP=C:\PROGRA~1\NOTEPA~1\NOTEPA~1.exe
 
-IF "%EDITOR%" NEQ "" (
+IF "%EDITOR%" == "" goto no_editor
     set NPP=%EDITOR%
-)
-
-IF not exist %NPP% (
+:no_editor
+    
+IF exist "%NPP%" goto found_editor
     echo Could not find %NPP%, please set the EDITOR environment variable
     goto :EOF
-)
+:found_editor
+
 REM SET VV=%1
-REM -- Split the date into weekday, month, day, and year, using slash and space as delimiters
+REM -- Split the input argument into drive, path, and linenumber, using colon as delimiters
 for /f "tokens=1,2,3 delims=:" %%a in ("%1") do set FILENAME=%%a&set LINEINFILE=%%b&set LINEINFILE2=%%c
 
 REM We split the filename on colon, so we must handle these three cases:
@@ -46,15 +48,15 @@ set FILENAME=%1
 set LINEINFILE=
 set LINEINFILE2=
 :skip
-
-IF "_%LINEINFILE%_" EQU "__" (
+echo %NPP%
+IF not "_%LINEINFILE%_" EQU "__" goto linenumber_else
     start /b %NPP% %*
-) else (
+    goto linenumber_endif
+:linenumber_else
     start /b %NPP% -n%LINEINFILE% %FILENAME%
-)
-
+:linenumber_endif
 goto :EOF
 
 :usage
-echo Usage:
+echo Usage: np ^<filename^> [:^<linenumber^>]
 echo     Opens a file in Notepad++. If the argument has a filename:line syntax it will open the file at that specific line.
