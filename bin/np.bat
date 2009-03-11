@@ -48,7 +48,7 @@ set FILENAME=%1
 set LINEINFILE=
 set LINEINFILE2=
 :skip
-echo %NPP%
+
 IF not "_%LINEINFILE%_" EQU "__" goto linenumber_else
     start /b %NPP% %*
     goto linenumber_endif
