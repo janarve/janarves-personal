@@ -56,7 +56,7 @@ my %test_groups = (
                 ":graphicsview",
                 "qgraphicswidget",
                 "qgraphicsproxywidget" ],
-    "animation" => [  "qanimation", 
+    "animation" => [  "qpropertyanimation", 
                 "qanimationgroup",
                 "qparallelanimationgroup",
                 "qsequentialanimationgroup" ],
