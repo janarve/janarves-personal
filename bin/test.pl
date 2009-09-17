@@ -12,22 +12,24 @@ use Config;
 use strict;
 
 my %test_groups = (
-    "graphicslayout" => [ "qgraphicslayout", 
-                "qgraphicslayoutitem", 
-                "qgraphicslinearlayout", 
+    "graphicslayout" => [ "qgraphicslayout",
+                "qgraphicslayoutitem",
+                "qgraphicsanchorlayout",
+                "qgraphicsanchorlayout1",
+                "qgraphicslinearlayout",
                 "qgraphicsgridlayout"],
-    "graphicsview" => [ "qgraphicsitem", 
+    "graphicsview" => [ "qgraphicsitem",
                 "qgraphicsscene",
                 "qgraphicsview"],
-    "woc" => [  ":graphicslayout", 
+    "woc" => [  ":graphicslayout",
                 ":graphicsview",
                 "qgraphicswidget",
                 "qgraphicsproxywidget" ],
-    "animation" => [  "qpropertyanimation", 
+    "animation" => [  "qpropertyanimation",
                 "qanimationgroup",
                 "qparallelanimationgroup",
                 "qsequentialanimationgroup",
-                "qanimationstate"],
+                "qeasingcurve"],
     );
 
 sub usage()
@@ -40,7 +42,7 @@ sub usage()
           "  --rebuild                      rebuild tests\n",
           "  --help                         Show this help screen\n" );
     exit(0);
-    
+
 }
 
 sub printGroup
@@ -82,7 +84,7 @@ while ( @ARGV ) {
 
 if (scalar(@user_groups) eq 0) {
     print "available test groups:\n";
-    my $test_group; 
+    my $test_group;
     for $test_group ( keys %test_groups ) {
         print("  * $test_group\n");
         printGroup($test_group, 6);
@@ -91,7 +93,7 @@ if (scalar(@user_groups) eq 0) {
     foreach my $group(@user_groups) {
         if ($opt eq "list") {
             printGroup($group, 2);
-        } else {    
+        } else {
             my @tests = testsForGroup($group);
             if ($opt eq "rebuild") {
                 foreach my $test(@tests) {
