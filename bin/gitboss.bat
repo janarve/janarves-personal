@@ -1,12 +1,17 @@
+@REM
 @echo off
-REM
-if "%1" EQU "" (
-    echo Usage:
-    echo    gitboss ^<file^>
-    goto :EOF
+IF "%1" EQU "" (
+    goto usage
 )
-SETLOCAL
-SET SORT="c:\Program Files\Git\bin\sort.exe"
-REM git log -40 %1 | grep '^Author:' | %SORT% +1 | uniq -c  | %SORT% -r +0
-git blame %1 | cut -b11-31 | %SORT% +0 | uniq -c | %SORT% -r +0
+IF "%1" EQU "/?" (
+    goto usage
+)
 
+SETLOCAL
+SET SORTCMD=%GITPATH%\bin\sort.exe
+git blame %1 | sed -e "s/.*(\\([^)][^)]*\\) [0-9][0-9][0-9][0-9]-.*/\1/g" | %SORTCMD% +0 | uniq -c | %SORTCMD% +0 -r
+goto :EOF
+
+:usage
+echo Usage: gitboss ^<filename^>
+echo     Shows how many lines a user have changed in the current version of the ^<filename^>.
