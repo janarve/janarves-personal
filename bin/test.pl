@@ -55,6 +55,7 @@ sub printGroup
 }
 
 my $qtdir = $ENV{"QTDIR"};
+$qtdir =~ tr,\\,/,;
 my @user_groups;
 my $config = "debug";
 my $filter = 1;
@@ -111,7 +112,7 @@ if (scalar(@user_groups) eq 0) {
             foreach my $test(@tests) {
                 my $cmd = "$qtdir/tests/auto/$test/$config/tst_$test.exe";
                 if (-e $cmd) {
-                    $cmd =~ tr,/,\\,;
+                    #$cmd =~ tr,/,\\,;
                     print("$cmd\n");
                     if ($filter eq 1) {
                         my $output = `$cmd`;
