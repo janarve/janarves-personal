@@ -1,0 +1,50 @@
+[core]
+	autocrlf = true
+    pager = less -FRSX  # to get colored diffs
+	editor = npp.bat
+
+[user]
+	name = Jan-Arve Sæther
+	email = jan-arve.saether@nokia.com
+[commit]
+	template = C:/jans\\.qtsoftware-commit-template
+[status]
+	showUntrackedFiles = no
+[url "git@scm.dev.nokia.troll.no:"]
+	insteadOf = qtsoftware:
+
+[merge]
+    tool = diffmerge
+
+[mergetool "winmerge"]
+	cmd = c:/Progra~2/WinMerge/WinMergeU.exe -u -wl \"$BASE\" \"$REMOTE\" \"$MERGED\"
+
+[mergetool "tortoise"]
+    cmd = c:/Progra~1/TortoiseSVN/bin/TortoiseMerge.exe /base:\"$PWD/$BASE\" /theirs:\"$PWD/$REMOTE\" /mine:\"$PWD/$LOCAL\" /merged:\"$PWD/$MERGED\"
+
+[mergetool "diffmerge"]
+    cmd = C:/Progra~2/SourceGear/DiffMerge/DiffMerge.exe \"$LOCAL\" \"$BASE\" \"$REMOTE\" --result=\"$MERGED\" --title1="Mine" --title2="MergingToRes" --title3="Theirs"
+    trustExitCode = false
+    keepBackup = false
+
+[mergetool "p4"]
+    cmd = \"c:/Program Files/Perforce/p4merge.exe\"  \"$BASE\" \"$REMOTE\" \"$LOCAL\" \"$MERGED\"
+
+[color]
+	diff = always
+
+[alias]
+    st = status
+    di = diff
+    co = checkout
+    ci = commit
+    br = branch
+#    sta = stash
+
+
+[remote "morpheuz"]
+	url = git://gitorious.org/~morphbr/qt/morphbrs-clone.git
+	fetch = +refs/heads/*:refs/remotes/morpheuz/*
+[remote "fleury"]
+	url = git://gitorious.org/~fleury/qt/fleury-openbossa-clone.git
+	fetch = +refs/heads/*:refs/remotes/fleury/*
