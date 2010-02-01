@@ -3,7 +3,7 @@
 #
 
 CC=cl
-CFLAGS=/O1
+CFLAGS=/O1 -DWIN32
 
 all: xxd
 
