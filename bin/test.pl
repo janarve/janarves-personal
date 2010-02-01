@@ -25,11 +25,12 @@ my %test_groups = (
                 ":graphicsview",
                 "qgraphicswidget",
                 "qgraphicsproxywidget" ],
-    "animation" => [  "qpropertyanimation",
-                "qanimationgroup",
+    "animation" => [  "qanimationgroup",
+                "qeasingcurve",
                 "qparallelanimationgroup",
-                "qsequentialanimationgroup",
-                "qeasingcurve"],
+                "qpauseanimation",
+                "qpropertyanimation",
+                "qsequentialanimationgroup"],
     );
 
 sub usage()
