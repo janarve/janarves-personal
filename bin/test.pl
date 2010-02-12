@@ -10,28 +10,7 @@ use File::Path;
 use Cwd;
 use Config;
 use strict;
-
-my %test_groups = (
-    "graphicslayout" => [ "qgraphicslayout",
-                "qgraphicslayoutitem",
-                "qgraphicsanchorlayout",
-                "qgraphicsanchorlayout1",
-                "qgraphicslinearlayout",
-                "qgraphicsgridlayout"],
-    "graphicsview" => [ "qgraphicsitem",
-                "qgraphicsscene",
-                "qgraphicsview"],
-    "woc" => [  ":graphicslayout",
-                ":graphicsview",
-                "qgraphicswidget",
-                "qgraphicsproxywidget" ],
-    "animation" => [  "qanimationgroup",
-                "qeasingcurve",
-                "qparallelanimationgroup",
-                "qpauseanimation",
-                "qpropertyanimation",
-                "qsequentialanimationgroup"],
-    );
+use FindBin;
 
 sub usage()
 {
@@ -55,8 +34,22 @@ sub printGroup
     }
 }
 
+sub findBin()
+{
+    my $path = $FindBin::Bin;
+    return "$path/test.config";
+}
+
+## Read configuration file
+my $file = findBin();
+my %result = do $file;
+die "Probable syntax error $file\n" unless (%result);
+my %test_groups = %result;
+
 my $qtdir = $ENV{"QTDIR"};
-$qtdir =~ tr,\\,/,;
+if ($qtdir) {
+    $qtdir =~ tr,\\,/,;
+}
 my @user_groups;
 my $config = "debug";
 my $filter = 1;
@@ -86,10 +79,14 @@ while ( @ARGV ) {
 
 if (scalar(@user_groups) eq 0) {
     print "available test groups:\n";
-    my $test_group;
-    for $test_group ( keys %test_groups ) {
-        print("  * $test_group\n");
-        printGroup($test_group, 6);
+    if (!scalar (keys %test_groups)) {
+        print("none\n");
+    } else {
+        my $test_group;
+        for $test_group ( keys %test_groups ) {
+            print("  * $test_group\n");
+            printGroup($test_group, 6);
+        }
     }
 } else {
     foreach my $group(@user_groups) {
@@ -141,7 +138,7 @@ sub testsForGroup
         my $tg = pop(@groups);
         for $i ( 0 .. $#{ $test_groups{$tg} } ) {
             my $test = $test_groups{$tg}[$i];
-            if (substr($test, 0, 1) eq ":") {
+            if (substr($test, 0, 1) eq "&") {
                 push(@groups, substr($test, 1, length($test) - 1));
             } else {
                 push(@tests, "$test");
