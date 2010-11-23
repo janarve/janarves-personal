@@ -1,0 +1,1 @@
+@cscript %~pd0\jslint.js < %1
