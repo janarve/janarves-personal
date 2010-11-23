@@ -1,5 +1,5 @@
 @echo off
-IF "_%PROCESSOR_ARCHITEW6432%_" EQU "_AMD64_" (
+IF (%PROCESSOR_ARCHITECTURE%) EQU (AMD64) (
     xxd-64.exe %*
 ) else (
     xxd-32.exe %*
