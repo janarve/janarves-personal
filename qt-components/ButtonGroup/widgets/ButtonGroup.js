@@ -3,9 +3,8 @@ var functionArray = null;
 
 function init()
 {
-    functionArray = new Array();
+    functionArray = [];
 }
-
 
 // is executed in the scope of the toggled checkable
 function toggled()
@@ -28,6 +27,5 @@ function Entry(checkable) {
 function addItem(checkable) {
     var entry = new Entry(checkable);
     checkable.checkedChanged.connect(entry, entry.fnToggled);
-    functionArray.push(entry)
+    functionArray.push(entry);
 }
-
