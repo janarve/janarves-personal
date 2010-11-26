@@ -1,1 +1,0 @@
-@cscript %~pd0\jslint.wsf < %1
