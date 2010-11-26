@@ -1,1 +1,1 @@
-@cscript %~pd0\jslint.js < %1
+@cscript %~pd0\jslint.wsf < %1
