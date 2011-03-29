@@ -6,9 +6,9 @@ prompt $p$g
 SET LS_OPTIONS=--more --color=auto --recent --streams
 call t:\dev\personal\bin\%COMPUTERNAME%.bat
 
-SET PATH=t:\dev\qt-stable\bin;t:\dev\personal\bin;t:\dev\devtools\shell;%PATH%;%GITPATH%\bin
+SET PATH=t:\dev\qt-stable\bin;t:\dev\personal\bin;t:\dev\devtools\shell;%PATH%
 SET EDITOR=%NOTEPADPP%
-set GIT_EDITOR=t:\dev\personal\bin\npp.bat
+set GIT_EDITOR=npp.bat
 set P4_TREE=t:\dev
 DOSKEY ll=ls -l $*
 
@@ -16,6 +16,98 @@ set PASTEBIN=pastebin.com
 
 REM for cpaster
 set CODEPASTER_HOST=codepaster.europe.nokia.com
+
+set CHOICE_OPT_Y=/C YN /T 2 /D Y
+set CHOICE_OPT_N=/C YN /T 2 /D N
+
+
+REM *****************************************************************
+REM
+REM "detect" Git
+REM
+REM *****************************************************************
+if NOT EXIST "%GITPATH%\bin" (
+    goto git_skip
+)
+choice %CHOICE_OPT_Y% /M Git
+if ERRORLEVEL 2 goto git_skip
+SET PATH=%PATH%;%GITPATH%\bin
+:git_skip
+
+
+REM *****************************************************************
+REM
+REM "detect" GnuWin32
+REM
+REM *****************************************************************
+if NOT EXIST "c:\dev\GnuWin32\bin" (
+    goto gnuwin32_skip
+)
+choice %CHOICE_OPT_Y% /M GnuWin32
+if ERRORLEVEL 2 goto gnuwin32_skip
+SET PATH=c:\dev\GnuWin32\bin;%PATH%
+:gnuwin32_skip
+
+
+
+REM *****************************************************************
+REM
+REM "detect" ActiveState Perl
+REM
+REM *****************************************************************
+if NOT EXIST "c:\perl\bin" (
+    goto asperl_skip
+)
+choice %CHOICE_OPT_Y% /M "ActiveState Perl"
+if ERRORLEVEL 2 goto asperl_skip
+SET PATH=c:\perl\bin;%PATH%
+:asperl_skip
+
+
+
+REM *****************************************************************
+REM
+REM "detect" python
+REM
+REM *****************************************************************
+if NOT EXIST "c:\python26" (
+    goto python_skip
+)
+choice %CHOICE_OPT_N% /M Python
+if ERRORLEVEL 2 goto python_skip
+SET PATH=c:\python26;%PATH%
+:python_skip
+
+
+
+REM *****************************************************************
+REM
+REM "detect" Mercurial
+REM
+REM *****************************************************************
+if NOT EXIST "c:\PROGRA~2\Mercurial" (
+    goto mercurial_skip
+)
+choice %CHOICE_OPT_N% /M Mercurial
+if ERRORLEVEL 2 goto mercurial_skip
+SET PATH=%PATH%;c:\PROGRA~2\Mercurial
+:mercurial_skip
+
+
+
+REM *****************************************************************
+REM
+REM "detect" CMake
+REM
+REM *****************************************************************
+if NOT EXIST "c:\Program Files (x86)\CMake 2.8\bin" (
+    goto cmake_skip
+)
+choice %CHOICE_OPT_N% /M CMake
+if ERRORLEVEL 2 goto cmake_skip
+set PATH=%PATH%;c:\Program Files (x86)\CMake 2.8\bin
+:cmake_skip
+
 
 
 REM *****************************************************************
@@ -49,7 +141,7 @@ goto dbus_found
 REM *****************************************************************
 REM
 REM "detect" expat
-REM 
+REM
 REM *****************************************************************
 if NOT EXIST "t:\3rdparty\expat" (
     goto expat
@@ -63,13 +155,10 @@ set PATH=t:\3rdparty\expat\bin;%PATH%
 REM *****************************************************************
 REM
 REM "detect" open ssl
-REM 
+REM
 REM *****************************************************************
 set Include=t:\3rdparty\openssl64\include;%Include%
 set Lib=t:\3rdparty\openssl64\lib;%Lib%
 set PATH=t:\3rdparty\openssl64\bin;%PATH%
 
-
-REM cmake
-set PATH=%PATH%;c:\Program Files (x86)\CMake 2.8\bin
 
