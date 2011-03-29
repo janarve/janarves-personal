@@ -107,6 +107,29 @@ if (scalar(@user_groups) eq 0) {
                     }
                 }
             }
+            
+            # Check if the test exist, if not build it
+            foreach my $test(@tests) {
+                my $cmd = "$qtdir/tests/auto/$test/$config/tst_$test.exe";
+                if (! -e $cmd) {
+                    print ("Could not find $test, rebuilding");
+                    chdir("$qtdir/tests/auto/$test");
+                    system("qmake");
+                    system("$makeprog debug");
+                    my $cmd = "$qtdir/tests/auto/$test/$config/tst_$test.exe";
+                    if (! -e $cmd) {
+                        system("$makeprog distclean");
+                        system("qmake");
+                        system("$makeprog debug");
+                    }
+                    if (-e $cmd) {
+                        print("OK");
+                    }
+                    print("\n");                
+                }
+            }
+            
+            # Now run all tests
             foreach my $test(@tests) {
                 my $cmd = "$qtdir/tests/auto/$test/$config/tst_$test.exe";
                 if (-e $cmd) {
@@ -120,8 +143,6 @@ if (scalar(@user_groups) eq 0) {
                     } else {
                         system($cmd);
                     }
-                } else {
-                    print("Could not find $test\n");
                 }
             }
         }
