@@ -94,57 +94,36 @@ if (scalar(@user_groups) eq 0) {
             printGroup($group, 2);
         } else {
             my @tests = testsForGroup($group);
-            if ($opt eq "rebuild") {
-                foreach my $test(@tests) {
-                    print ("BUILDING $test");
-                    chdir("$qtdir/tests/auto/$test");
-                    system("$makeprog distclean");
-                    system("qmake");
-                    system("$makeprog debug");
-                    my $cmd = "$qtdir/tests/auto/$test/$config/tst_$test.exe";
-                    if (-e $cmd) {
-                        print("OK!");
-                    }
-                }
-            }
             
             # Check if the test exist, if not build it
+            my $rebuild = ($opt eq "rebuild" ? 1 : 0);
             foreach my $test(@tests) {
-                my $cmd = "$qtdir/tests/auto/$test/$config/tst_$test.exe";
-                if (! -e $cmd) {
-                    print ("Could not find $test, rebuilding");
-                    chdir("$qtdir/tests/auto/$test");
-                    system("qmake");
-                    system("$makeprog debug");
-                    my $cmd = "$qtdir/tests/auto/$test/$config/tst_$test.exe";
-                    if (! -e $cmd) {
-                        system("$makeprog distclean");
-                        system("qmake");
-                        system("$makeprog debug");
-                    }
-                    if (-e $cmd) {
-                        print("OK");
-                    }
-                    print("\n");                
-                }
+                printf("BUILDING %-30s", $test);
+                runMake($test, $config, $rebuild);
             }
             
             # Now run all tests
+            my $passed = 0;
+            my $failed = 0;
+            my $skipped = 0;
             foreach my $test(@tests) {
                 my $cmd = "$qtdir/tests/auto/$test/$config/tst_$test.exe";
                 if (-e $cmd) {
-                    #$cmd =~ tr,/,\\,;
-                    print("$cmd\n");
+                    printf("RUNNING  %-30s", $test);
                     if ($filter eq 1) {
-                        my $output = `$cmd`;
-                        my @outp = split(/\n/, $output);
-                        my @out = grep {/(Start testing|Totals:)/} @outp;
-                        print join("\n", @out) . "\n";
+                        my $_ = `$cmd`;
+                        if (/Totals: (\d+) passed, (\d+) failed, (\d+) skipped/) {
+                            $passed = $passed + $1;
+                            $failed = $failed + $2;
+                            $skipped = $skipped + $3;
+                            printf("(%2d/%2d/%2d)\n",$1,$2,$3);
+                        }
                     } else {
                         system($cmd);
                     }
                 }
             }
+            printf("SUMMARY  %29s (%3d/%2d/%2d)", " ", $passed, $failed, $skipped)
         }
     }
 }
@@ -167,4 +146,35 @@ sub testsForGroup
         }
     }
     return @tests;
+}
+
+sub runMake
+{
+    my $testName = shift;
+    my $config = shift;
+    my $rebuild = shift;
+    my $cmd = "$qtdir/tests/auto/$testName/$config/tst_$testName.exe";
+    if (! $rebuild) {
+        if (! -e $cmd) {
+            print ("Could not find $testName, rebuilding");
+            chdir("$qtdir/tests/auto/$testName");
+            system("qmake");
+            `$makeprog debug`;
+            #system("$makeprog debug");
+            $cmd = "$qtdir/tests/auto/$testName/$config/tst_$testName.exe";
+        }
+    }
+
+    if (! -e $cmd || $rebuild) {
+        #system("$makeprog distclean");
+        #system("qmake");
+        #system("$makeprog debug");
+        `$makeprog distclean 2>NUL`;
+        `qmake`;
+        `$makeprog debug 2>NUL`;
+    }
+    if (-e $cmd) {
+        print("OK");
+    }
+    print("\n");
 }
