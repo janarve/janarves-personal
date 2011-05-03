@@ -6,13 +6,13 @@
 @echo off
 
 SETLOCAL
-IF "_%1_" == "_/?_" (
+IF (%1) == (/?) (
     goto usage
 )
 
 set NPP=C:\PROGRA~1\NOTEPA~1\NOTEPA~1.exe
 
-IF "%EDITOR%" == "" goto no_editor
+IF (%EDITOR%) == () goto no_editor
     set NPP=%EDITOR%
 :no_editor
     
@@ -30,7 +30,7 @@ REM 1. c:\a.txt
 REM 2. c:\a.txt:122
 REM 3. a.txt:122
 
-IF "_%LINEINFILE2%_" EQU "__" goto no_case2
+IF (%LINEINFILE2%) EQU () goto no_case2
 REM     this case: "c:\a.txt:122"
     set FILENAME=%FILENAME%:%LINEINFILE%
     set LINEINFILE=%LINEINFILE2%
@@ -49,7 +49,7 @@ set LINEINFILE=
 set LINEINFILE2=
 :skip
 
-IF not "_%LINEINFILE%_" EQU "__" goto linenumber_else
+IF not (%LINEINFILE%) EQU () goto linenumber_else
     start /b %NPP% %*
     goto linenumber_endif
 :linenumber_else
