@@ -1,1 +1,1 @@
-@perl -S test.pl %*
+@perl -S %~pd0test.pl %*

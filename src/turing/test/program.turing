@@ -1,0 +1,25 @@
+memory: 1100
+function AddOne {
+    1xx1r
+    1bx2r
+}
+
+memory: 111100
+function AddTwo {
+    1xx1r
+    1bx2r
+    2bx3r
+}
+memory: 111
+function Double {
+    1xb2r
+    2xx2r
+    2bb3r
+    3xx3r
+    3bx4r
+    4bx5l
+    5xx5l
+    5bb6l
+    6xx6l
+    6bb1r
+}
