@@ -53,6 +53,7 @@ if ($qtdir) {
 my @user_groups;
 my $config = "debug";
 my $filter = 1;
+my $verbose = 0;
 my $opt = "";
 my $makeprog = "nmake";
 
@@ -63,6 +64,7 @@ while ( @ARGV ) {
             $config = shift @ARGV;
         } elsif ($arg eq "--verbose") {
             $filter = 0;
+            $verbose = 1;
         } elsif ($arg eq "--list") {
             $opt = "list";
         } elsif ($arg eq "--rebuild") {
@@ -106,6 +108,7 @@ if (scalar(@user_groups) eq 0) {
             my $passed = 0;
             my $failed = 0;
             my $skipped = 0;
+            printf("RUNNING  %29s |PASS|FAIL|SKIP|\n", " ");
             foreach my $test(@tests) {
                 my $cmd = "$qtdir/tests/auto/$test/$config/tst_$test.exe";
                 if (-e $cmd) {
@@ -116,14 +119,14 @@ if (scalar(@user_groups) eq 0) {
                             $passed = $passed + $1;
                             $failed = $failed + $2;
                             $skipped = $skipped + $3;
-                            printf("(%2d/%2d/%2d)\n",$1,$2,$3);
+                            printf("|%4d|%4d|%4d|\n",$1,$2,$3);
                         }
                     } else {
                         system($cmd);
                     }
                 }
             }
-            printf("SUMMARY  %29s (%3d/%2d/%2d)", " ", $passed, $failed, $skipped)
+            printf("SUMMARY  %29s |%4d|%4d|%4d|", " ", $passed, $failed, $skipped)
         }
     }
 }
@@ -160,18 +163,28 @@ sub runMake
             chdir("$qtdir/tests/auto/$testName");
             system("qmake");
             `$makeprog debug`;
-            #system("$makeprog debug");
-            $cmd = "$qtdir/tests/auto/$testName/$config/tst_$testName.exe";
+        } else {
+            system("qmake");
+            if ($verbose) {
+                `$makeprog debug`;
+            } else {
+                `$makeprog debug 2>NUL`;
+            }
         }
     }
 
     if (! -e $cmd || $rebuild) {
-        #system("$makeprog distclean");
-        #system("qmake");
-        #system("$makeprog debug");
-        `$makeprog distclean 2>NUL`;
+        if ($verbose) {
+            `$makeprog distclean`;
+        } else {
+            `$makeprog distclean 2>NUL`;
+        }
         `qmake`;
-        `$makeprog debug 2>NUL`;
+        if ($verbose) {
+            `$makeprog debug`;
+        } else {
+            `$makeprog debug 2>NUL`;
+        }
     }
     if (-e $cmd) {
         print("OK");
