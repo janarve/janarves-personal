@@ -17,9 +17,10 @@ set PASTEBIN=pastebin.com
 REM for cpaster
 set CODEPASTER_HOST=codepaster.europe.nokia.com
 
-set CHOICE_OPT_Y=/C YN /T 2 /D Y
-set CHOICE_OPT_N=/C YN /T 2 /D N
+set CHOICE_OPT_Y=/C YN /T 0 /D Y
+set CHOICE_OPT_N=/C YN /T 0 /D N
 
+REM call use git
 
 REM *****************************************************************
 REM
@@ -79,37 +80,6 @@ SET PATH=c:\python26;%PATH%
 :python_skip
 
 
-
-REM *****************************************************************
-REM
-REM "detect" Mercurial
-REM
-REM *****************************************************************
-if NOT EXIST "c:\PROGRA~2\Mercurial" (
-    goto mercurial_skip
-)
-choice %CHOICE_OPT_N% /M Mercurial
-if ERRORLEVEL 2 goto mercurial_skip
-SET PATH=%PATH%;c:\PROGRA~2\Mercurial
-:mercurial_skip
-
-
-
-REM *****************************************************************
-REM
-REM "detect" CMake
-REM
-REM *****************************************************************
-if NOT EXIST "c:\Program Files (x86)\CMake 2.8\bin" (
-    goto cmake_skip
-)
-choice %CHOICE_OPT_N% /M CMake
-if ERRORLEVEL 2 goto cmake_skip
-set PATH=%PATH%;c:\Program Files (x86)\CMake 2.8\bin
-:cmake_skip
-
-
-
 REM *****************************************************************
 REM
 REM Detect d-bus compiled from source
@@ -144,12 +114,12 @@ REM "detect" expat
 REM
 REM *****************************************************************
 if NOT EXIST "t:\3rdparty\expat" (
-    goto expat
+    goto expat_skip
 )
 set Include=t:\3rdparty\expat\Source\lib;%Include%
 set Lib=t:\3rdparty\expat\bin;%Lib%
 set PATH=t:\3rdparty\expat\bin;%PATH%
-:expat
+:expat_skip
 
 
 REM *****************************************************************
@@ -157,8 +127,11 @@ REM
 REM "detect" open ssl
 REM
 REM *****************************************************************
+if NOT EXIST "t:\3rdparty\openssl64" (
+    goto openssl_skip
+)
 set Include=t:\3rdparty\openssl64\include;%Include%
 set Lib=t:\3rdparty\openssl64\lib;%Lib%
 set PATH=t:\3rdparty\openssl64\bin;%PATH%
-
+:openssl_skip
 
