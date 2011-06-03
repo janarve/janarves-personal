@@ -2,13 +2,19 @@
 @REM  standard command shell environment setup
 
 REM Computer-specific stuff
+IF EXIST "%P4_TREE%" (
+	goto :EOF
+)
 prompt $p$g
 SET LS_OPTIONS=--more --color=auto --recent --streams
-call t:\dev\personal\bin\%COMPUTERNAME%.bat
 
-SET PATH=t:\dev\qt-stable\bin;t:\dev\personal\bin;t:\dev\devtools\shell;%PATH%
+call t:\dev\personal\bin\%COMPUTERNAME%.bat %1
+SET PATH=t:\dev\qt-stable\bin;t:\dev\personal\bin;t:\dev\devtools\shell;%PATH%;%GITPATH%\bin
 SET EDITOR=%NOTEPADPP%
-set GIT_EDITOR=npp.bat
+REM set GIT_EDITOR=t:\dev\personal\bin\npp.bat
+set GIT_EDITOR=t:/dev/personal/bin/npp.bat
+set GIT_TEMPLATE_DIR=t:\dev\devtools\git\template
+
 set P4_TREE=t:\dev
 DOSKEY ll=ls -l $*
 
