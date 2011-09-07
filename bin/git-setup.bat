@@ -5,6 +5,11 @@ REM
 
 pushd .
 
+REM *******************************************************
+REM **
+REM ** Detect root of the git repo we're inside
+REM **
+REM *******************************************************
 :loop
 if exist .git goto :found_git_repo
 cd ..
@@ -13,16 +18,48 @@ if NOT exist .git goto :error_not_a_git_repo
 
 :found_git_repo
 echo Found git repository at '%CD%'
-if EXIST %CD%.\.git\hooks\post-commit (
-    goto :done
+
+
+
+
+REM *******************************************************
+REM **
+REM ** Install .git\hooks\post-commit
+REM **
+REM *******************************************************
+if EXIST .git\hooks\post-commit (
+    goto :post_commit_installed
 )
+
 echo Configuring git post-commit hook
-mklink %CD%\.git\hooks\post-commit t:\dev\devtools\shell\git_post_commit_hook
+mklink .git\hooks\post-commit t:\dev\devtools\shell\git_post_commit_hook
+
+:post_commit_installed
+
+
+
+
+REM *******************************************************
+REM **
+REM ** Install .git\hooks\commit-msg
+REM **
+REM *******************************************************
+if EXIST .git\hooks\commit-msg (
+    goto :skip_commit_msg_install
+)
+REM ### Check if we are a Qt 5 repo
+if NOT EXIST sync.profile (
+    goto :skip_commit_msg_install
+)
+echo Configuring gerrit commit msg
+scp -p smd@codereview.qt.nokia.com:hooks/commit-msg .git\hooks
+
+:skip_commit_msg_install
+
 goto :done
 
 :error_not_a_git_repo
 echo not a git repo!
-goto :done
 
 :done
 popd
@@ -30,13 +67,17 @@ popd
 
 
 
+REM *******************************************************
+REM **
+REM ** Set up aliases
+REM **
+REM *******************************************************
 echo Configuring aliases
 REM qtsoftware:.insteadOf
 if "%COMPUTERNAME%" EQU "PILSEN" (
-    call :git_config_set "url.qtsoftware:.insteadOf",git@scm.dev.troll.no:
+    call :git_config_set "url.git@scm.dev.troll.no::.insteadOf",qtsoftware:
 ) else (
-    REM ###???call :git_config_set "url.qtsoftware:.insteadOf",git@scm.dev.troll.no:
-    echo ###fix me
+    call :git_config_set "url.git@scm.dev.nokia.troll.no:.insteadOf",qtsoftware:
 )
 call :git_config_set core.autocrlf,true
 call :git_config_set user.email,jan-arve.saether@nokia.com
