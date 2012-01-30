@@ -52,7 +52,7 @@ if NOT EXIST sync.profile (
     goto :skip_commit_msg_install
 )
 echo Configuring gerrit commit msg
-scp -p smd@codereview.qt.nokia.com:hooks/commit-msg .git\hooks
+scp -p smd@codereview.qt-project.org:hooks/commit-msg .git\hooks
 
 :skip_commit_msg_install
 
@@ -64,6 +64,12 @@ echo not a git repo!
 :done
 popd
 
+
+REM 
+REM
+REM
+echo "please add add gerrit remote:"
+echo "  git remote add gerrit codereview.qt-project.org:qt/<qtbase|qt5|...>"
 
 
 

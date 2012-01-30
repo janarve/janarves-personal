@@ -25,13 +25,18 @@ if (%1) EQU (git) (
 if (%1) EQU (hg) (
     goto use_hg
 )
+
+if (%1) EQU (python) (
+    goto use_python
+)
+
 if (%1) EQU (gnuwin32) (
     goto use_gnuwin32
 )
 
 :use_asperl
 SET PATH=%PATH%;%USE_ASPERL_DESC%
-goto :quit
+goto :EOF
 
 :use_bzr
 SET PATH=%PATH%;%USE_BZR_DESC%
@@ -53,6 +58,9 @@ goto :EOF
 SET PATH=%PATH%;%USE_HG_DESC%
 goto :EOF
 
+:use_python
+SET PATH=%PATH%;%USE_PYTHON_DESC%
+goto :EOF
 
 REM *****************************************************************
 REM
@@ -114,6 +122,14 @@ set USE_HG_DESC=c:\Program Files (x86)\Mercurial
 :detect_skip_hg
 
 
+REM -- python --------------------------------
+if NOT EXIST "c:\Python26\python.exe" (
+    goto detect_skip_python
+)
+set USE_PYTHON_DESC=c:\Python26
+:detect_skip_python
+
+
 REM -- GnuWin32 ------------------------------------
 if NOT EXIST "c:\dev\GnuWin32\bin" (
     goto detect_skip_gnuwin32
@@ -150,6 +166,10 @@ goto :EOF
     if "%USE_HG_DESC%" EQU "" ( goto usage_hg_skip)
     echo     hg          [%USE_HG_DESC%]
 :usage_hg_skip
+
+    if "%USE_PYTHON_DESC%" EQU "" ( goto usage_python_skip)
+    echo     python      [%USE_PYTHON_DESC%]
+:usage_python_skip
 
     if NOT (%USE_GNUWIN32_DESC%) EQU () (
     echo     gnuwin32    [%USE_GNUWIN32_DESC%]

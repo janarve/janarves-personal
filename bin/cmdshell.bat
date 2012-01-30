@@ -2,20 +2,20 @@
 @REM  standard command shell environment setup
 
 REM Computer-specific stuff
-IF EXIST "%P4_TREE%" (
-	goto :EOF
-)
 prompt $p$g
 SET LS_OPTIONS=--more --color=auto --recent --streams
 
+echo Applying computer-specific settings...
 call t:\dev\personal\bin\%COMPUTERNAME%.bat %1
-SET PATH=t:\dev\qt-stable\bin;t:\dev\personal\bin;t:\dev\devtools\shell;%PATH%;%GITPATH%\bin
+SET PATH=t:\dev\qt-stable\bin;t:\dev\personal\bin;t:\dev\devtools\shell;%PATH%
 SET EDITOR=%NOTEPADPP%
 REM set GIT_EDITOR=t:\dev\personal\bin\npp.bat
-set GIT_EDITOR=t:/dev/personal/bin/npp.bat
+REM set GIT_EDITOR=t:/dev/personal/bin/npp.bat
 set GIT_TEMPLATE_DIR=t:\dev\devtools\git\template
 
-set P4_TREE=t:\dev
+IF NOT EXIST "%P4_TREE%" (
+    set P4_TREE=t:\dev
+)
 DOSKEY ll=ls -l $*
 
 set PASTEBIN=pastebin.com
@@ -23,69 +23,10 @@ set PASTEBIN=pastebin.com
 REM for cpaster
 set CODEPASTER_HOST=codepaster.europe.nokia.com
 
-set CHOICE_OPT_Y=/C YN /T 0 /D Y
-set CHOICE_OPT_N=/C YN /T 0 /D N
+call use asperl
+call use git
 
-REM call use git
-
-REM *****************************************************************
-REM
-REM "detect" Git
-REM
-REM *****************************************************************
-if NOT EXIST "%GITPATH%\bin" (
-    goto git_skip
-)
-choice %CHOICE_OPT_Y% /M Git
-if ERRORLEVEL 2 goto git_skip
-SET PATH=%PATH%;%GITPATH%\bin
-:git_skip
-
-
-REM *****************************************************************
-REM
-REM "detect" GnuWin32
-REM
-REM *****************************************************************
-if NOT EXIST "c:\dev\GnuWin32\bin" (
-    goto gnuwin32_skip
-)
-choice %CHOICE_OPT_Y% /M GnuWin32
-if ERRORLEVEL 2 goto gnuwin32_skip
-SET PATH=c:\dev\GnuWin32\bin;%PATH%
-:gnuwin32_skip
-
-
-
-REM *****************************************************************
-REM
-REM "detect" ActiveState Perl
-REM
-REM *****************************************************************
-if NOT EXIST "c:\perl\bin" (
-    goto asperl_skip
-)
-choice %CHOICE_OPT_Y% /M "ActiveState Perl"
-if ERRORLEVEL 2 goto asperl_skip
-SET PATH=c:\perl\bin;%PATH%
-:asperl_skip
-
-
-
-REM *****************************************************************
-REM
-REM "detect" python
-REM
-REM *****************************************************************
-if NOT EXIST "c:\python26" (
-    goto python_skip
-)
-choice %CHOICE_OPT_N% /M Python
-if ERRORLEVEL 2 goto python_skip
-SET PATH=c:\python26;%PATH%
-:python_skip
-
-
+echo Detecting 3rd party libraries...
 REM *****************************************************************
 REM
 REM Detect d-bus compiled from source
