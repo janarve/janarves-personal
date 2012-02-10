@@ -42,7 +42,7 @@ function setCompiler($cpu){
 
     ### common stuff ###
     $env:Lib+=";t:\3rdparty\expat\bin"
-    $env:Lib="t:\dev\devtools\database\lib\msvc"
+    $env:Lib+=";t:\dev\devtools\database\lib\msvc"
     
     $env:Include+="C:\Program Files (x86)\Microsoft Visual Studio 9.0\VC\INCLUDE"
     $env:Include+=";C:\Program Files\Microsoft SDKs\Windows\v7.0\Include"

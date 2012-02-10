@@ -1,7 +1,8 @@
-﻿$firstArg = $args[0]
+$firstArg = $args[0]
 
-# Set the Qt environment; QTDIR QTDEPOT and PATH
+# Set the Qt environment; QTDIR and PATH
 function setPath($loc){
+    # Remove old QTDIR\bin from PATH
 	$splitPath = $Env:path.split(';')
     if ($env:QTDIR) {
         $tempEnv;
@@ -16,34 +17,12 @@ function setPath($loc){
         $env:Path = $tempEnv
     }
     
-	if(!$Env:QTDEPOT)
-	{ 
-		$qtDep = Read-host "Please enter the complete path to your Qt depot(e.g. D:\depot\qt)"
-		$Env:QTDEPOT = $qtDep
-		$storeQtdep = Read-host "Do you want to set the location of your Qt depot as a permanent setting?(y/n)"
-		if($storeQtdep -match "y")
-		{
-			echo "Qt depot location stored as permanent environment variable. To remove, run .\qtp.ps1 -clean"
-			[Environment]::SetEnvironmentVariable("QTDEPOT", "$qtDep", "User")
-		}
-		elseif($storeQtdep -match "n")
-		{
-			echo "Qt depot location temporarily stored and will be available in this session only."
-		}
-		else
-		{
-			echo "Invalid parameter - Qt depot location temporarily stored and will be available in this session only. Run qtp -clean and qtp qtdir once more to reset it. "
-		}
-	}
-    
-    if ($loc -eq ".") {
-        $loc = Get-Location
-    }
-    
     if (Test-Path $loc) {
+        $loc = Resolve-Path $loc
         $Env:QTDIR = $loc
     } elseif (Test-Path ($Env:QTDEPOT + "\qt-" + $loc)) {
-        $Env:QTDIR = $Env:QTDEPOT + "\qt-" + $loc
+        $loc = Resolve-Path ($Env:QTDEPOT + "\qt-" + $loc)
+        $Env:QTDIR = $loc
     }
     
 	$Env:Path = $Env:QTDIR + "\bin;" + $Env:Path	
@@ -51,18 +30,18 @@ function setPath($loc){
 
 # Help function
 function getHelp(){
-	echo "      To run this tool type: .\setqt.ps1 [option]"
-	echo "                                                               "
-	echo "      Options: [-clean] [-help] [<qtdir>]                      "
-	echo "                                                               "
-	echo "          -clean  Clean will iterate through the Windows       "
-	echo "                  path and clean any path containing the       "
-	echo "                  word Qt.                                     "
-	echo "          <qtdir> Type the path to your Qt directory to       "
-	echo "                  set the QtDir. If QTDIR is set the script    "
-	echo "                  will abort and a clean must be done.         "
-	echo "                  e.g. .\qtp.ps1 4.5Desktop                    "
-	echo "                                                               "
+    echo "      To run this tool type: .\setqt.ps1 [option]"
+    echo "                                                               "
+    echo "      Options: [-clean] [-help] [<qtdir>]                      "
+    echo "                                                               "
+    echo "          -clean  Clean will iterate through the Windows       "
+    echo "                  path and clean any path containing the       "
+    echo "                  word Qt.                                     "
+    echo "          <qtdir> Type the path to your Qt directory to       "
+    echo "                  set the QtDir. If QTDIR is set the script    "
+    echo "                  will abort and a clean must be done.         "
+    echo "                  e.g. .\qtp.ps1 4.5Desktop                    "
+    echo "                                                               "
 }
 
 # Main function
