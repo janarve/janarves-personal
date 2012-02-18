@@ -47,55 +47,39 @@ function SetCL($version = "7.1")
 
 function QT()
 {
-    $env:PATH +=";C:\Program Files (x86)\Microsoft Visual Studio 9.0\VC\Bin\amd64"
-    $env:PATH +=";C:\Program Files (x86)\Microsoft Visual Studio 9.0\VC\vcpackages"
-    $env:PATH +=";C:\Program Files (x86)\Microsoft Visual Studio 9.0\Common7\IDE"
-    $env:PATH +=";C:\Program Files\Microsoft SDKs\Windows\v7.0\Bin\x64;C:\Program Files\Microsoft SDKs\Windows\v7.0\Bin"
-    $env:PATH +=";C:\Windows\Microsoft.NET\Framework64\v3.5;"
-    $env:PATH +=";C:\Windows\Microsoft.NET\Framework\v3.5"
-    $env:PATH +=";C:\Windows\Microsoft.NET\Framework64\v2.0.50727"
-    $env:PATH +=";C:\Windows\Microsoft.NET\Framework\v2.0.50727"
-    $env:PATH +=";C:\Program Files\Microsoft SDKs\Windows\v7.0\Setup"
-    $env:PATH +=";t:\dev\qt-stable\bin"
+    setcompiler amd64 msvc2010expr
 
     $env:CL = "/MP"
     
-    $env:MSSdk="C:\Program Files\Microsoft SDKs\Windows\v7.0"
-    
-    $env:Include="C:\Program Files (x86)\Microsoft Visual Studio 9.0\VC\Include;C:\Program Files\Microsoft SDKs\Windows\v7.0\Include" 
-    $env:Include+=";C:\Program Files\Microsoft SDKs\Windows\v7.0\Include\gl" 
     $env:Include+=";t:\dev\devtools\database\include\tds;t:\dev\devtools\database\include\db2;t:\dev\devtools\database\include\fbird"
     $env:Include+=";t:\dev\devtools\database\include\oci;t:\dev\devtools\database\include\mysql;t:\dev\devtools\database\include\psql"
     $env:Include+=";t:\3rdparty\openssl64\include"
     $env:Include+=";t:\3rdparty\expat\Source\lib"
     
-    $env:Lib="t:\dev\devtools\database\lib\msvc;C:\Program Files (x86)\Microsoft Visual Studio 9.0\VC\Lib\amd64"
-    $env:Lib+=";C:\Program Files\Microsoft SDKs\Windows\v7.0\Lib\X64"
+    $env:Lib="t:\dev\devtools\database\lib\msvc;$env:Lib"
     $env:Lib+=";t:\3rdparty\openssl64\lib"
     $env:Lib+=";t:\3rdparty\expat\bin"
-    
+
+    $env:Path = $env:Path.Replace("t:\dev\personal\bin;", "")
+    $env:Path+=";t:\dev\qt-stable\bin"
 }
 
 
 function e()
 {
 	explorer .
-    
 }
 
 
-Set-Alias np 'C:\Program Files (x86)\Notepad++\notepad++.exe'
-
 (Get-Host).UI.RawUI.BackgroundColor="black"
-#(Get-Host).UI.RawUI.ForegroundColor="DarkYellow"
 (Get-Host).UI.RawUI.ForegroundColor="Blue"
-Clear-Host
 
-QT
-$env:Path = $env:Path.Replace("t:\dev\personal\bin;", "")
-$env:Path += ";c:\Perl\bin"
+
+$env:Path = "c:\Perl64\bin;" + $env:Path
 $env:Path += ";c:\Program Files (x86)\Git\bin"
 $env:Path+=';t:\dev\personal\bin\ps1\'
+
+QT
 
 # Load posh-git example profile
 . 'T:\dev\posh-git\profile.example.ps1'
