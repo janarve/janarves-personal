@@ -15,6 +15,10 @@ Changes current compiler target architecture to amd64. Compiler version is left 
 Changes current compiler version to MS Visual Express 2010.
 Compiler target architecture is left unchanged if it exist for that compiler version.
 
+.EXAMPLE
+.\setcompiler.ps1
+Outputs the current compiler
+
 .NOTES
 Experimental
 
@@ -22,19 +26,39 @@ Experimental
 http://jans.tihlde.org
 
 #>
-param([string]$architecture = "x86", [string]$compiler = $null, [switch]$help)
+param([string]$architecture = $null, [string]$compiler = $null, [switch]$help)
+
+function currentCompilerString()
+{
+    $error.Clear()
+    cl 2>null
+    $error.Reverse()
+    $error | % { $_.TargetObject }
+}
 
 function setCompiler($arch, $comp){
+    if ($arch -and !($arch -eq "x86" -or $arch -eq "amd64")) {
+        Write-Output "Invalid architecture ""$arch"". Can only  be x86 or amd64."
+        return
+    }
     if (!$comp) {
+        if (!$arch) {
+            Write-Host "Current compiler:"
+            currentCompilerString
+            return
+        }
         if (Test-Path "HKCU:\Software\JASOFT\SetCompiler") {
-            $comp = (Get-ItemProperty -path "HKCU:\Software\JASOFT\SetCompiler")."LastUsedCompiler"
-        } else {
+            if ($arch) {
+                $comp = (Get-ItemProperty -path "HKCU:\Software\JASOFT\SetCompiler")."LastUsedCompiler"
+            }
+        }
+        if (!$comp) {
             # First time - require a compiler
             Write-Host "You need to specify a compiler version"
             Write-Host "I don't know the current compiler, asking cl:"
             Write-Host
-            cl
-            Exit-PSSession
+            currentCompilerString
+            return
         }
     } else {
         if (!(Test-Path "HKCU:\Software\JASOFT\SetCompiler")) {
@@ -133,6 +157,7 @@ function setCompiler($arch, $comp){
             #	$VCINSTALLDIR = Get-ItemProperty $registryPath -name "ProductDir"
             #}
 
+            $compilerFound = true
             if ($arch -eq "x86") {
                 $NewLIB  = "C:\Program Files (x86)\Microsoft Visual Studio 9.0\VC\ATLMFC\LIB"
                 $NewLIB +=";C:\Program Files (x86)\Microsoft Visual Studio 9.0\VC\LIB"
@@ -228,10 +253,8 @@ function setCompiler($arch, $comp){
 function main(){
     if ($help){
         Get-Help setCompiler.ps1
-        exit
     } else {
         setCompiler $architecture $compiler
-        exit
     }
 }
 # Calling main function
