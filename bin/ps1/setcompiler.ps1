@@ -65,8 +65,8 @@ function setCompiler($arch, $comp){
             # Create the registry keys
             $obj = New-Item -path "HKCU:\Software\JASOFT"
             $obj = New-Item -path "HKCU:\Software\JASOFT\SetCompiler"
-            $obj = New-ItemProperty -path "HKCU:\Software\JASOFT\SetCompiler" -name "LastUsedCompiler" -value $comp
         }
+        $obj = Set-ItemProperty -path "HKCU:\Software\JASOFT\SetCompiler" -name "LastUsedCompiler" -value $comp
     }
     $NewIncludes  = @()
     $newPaths = @()
@@ -157,7 +157,7 @@ function setCompiler($arch, $comp){
             #	$VCINSTALLDIR = Get-ItemProperty $registryPath -name "ProductDir"
             #}
 
-            $compilerFound = true
+            $compilerFound = $true
             if ($arch -eq "x86") {
                 $NewLIB  = "C:\Program Files (x86)\Microsoft Visual Studio 9.0\VC\ATLMFC\LIB"
                 $NewLIB +=";C:\Program Files (x86)\Microsoft Visual Studio 9.0\VC\LIB"
