@@ -78,7 +78,7 @@ function setPath($loc){
     }
     if ($newQTDIR) {
         $Env:QTDIR = $newQTDIR
-        $Env:Path += ";$newQTDIR\bin"
+        $Env:Path = "$newQTDIR\bin;" + $Env:Path
         Write-Host "Qt version is set to $newQTDIR"
     } else {
         Write-Host "Could not find the given Qt version"
