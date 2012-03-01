@@ -1,19 +1,18 @@
-param($arg1)
+param([string]$subdir)
 
-if ($env:QTDIR -eq "" ) {
-    echo "QTDIR not set. Run setqt <version>"
-} elseif (!$arg1) {
+if (!$env:QTDIR) {
+    Write-Host "QTDIR not set. Run setqt <version>"
+    return
+} elseif (!$subdir) {
     Push-Location $env:QTDIR
 } else {
-    "$arg1 not found in QTDIR, src, examples or tools"
+    foreach ($s in @(".", "..", "src", "examples")) {
+        $dest = "$env:QTDIR\$s\$subdir"
+        if (Test-Path $dest) {
+            Push-Location $dest
+            return
+        }
+    }
+    Write-Host "$subdir not found in QTDIR, .., src or examples"
+    return
 }
-
-
-#for %%i in (. src examples tools) do (
-#  if exist %qtdir%\%%i\%1 (
-#    pushd %qtdir%\%%i\%1
-#    goto end
-#  )
-#)
-
-#echo %1 not found in QTDIR, src, examples or tools
