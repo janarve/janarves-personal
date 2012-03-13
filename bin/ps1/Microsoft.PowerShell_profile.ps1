@@ -75,10 +75,26 @@ function e()
 (Get-Host).UI.RawUI.ForegroundColor="Blue"
 
 
-$env:Path = "c:\Perl64\bin;" + $env:Path
+### Detect Active State Perl
+if (Test-Path "c:\Perl64\bin") {
+    $env:Path = "c:\Perl64\bin;" + $env:PATH
+}elseif (Test-Path "c:\Perl\bin") {
+    $env:Path = "c:\Perl\bin;" + $env:PATH
+} else {
+    Write-Host "ActivePerl not found"
+}
+
+### Detect python
+if (Test-Path "c:\Python26") {
+    $env:Path = "c:\Python26;" + $env:Path
+} else {
+    Write-Host "Python not found"
+}
+
 $env:Path += ";c:\Program Files (x86)\Git\bin"
 $env:Path+=';t:\dev\personal\bin\ps1\'
 
+$env:ARTISTIC_STYLE_OPTIONS="$USERPROFILE\astylerc"
 QT
 
 # Load posh-git example profile
