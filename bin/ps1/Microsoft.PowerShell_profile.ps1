@@ -47,7 +47,7 @@ function SetCL($version = "7.1")
 
 function QT()
 {
-    setcompiler amd64 msvc2010expr
+    setcompiler amd64 msvc2008
 
     $env:CL = "/MP"
     
@@ -96,6 +96,11 @@ $env:Path+=';t:\dev\personal\bin\ps1\'
 
 $env:ARTISTIC_STYLE_OPTIONS="$USERPROFILE\astylerc"
 QT
+
+# eeew... Get rid of symbian toolchain (might confuse mingw)
+$env:Path = $env:Path.replace("C:\Program Files (x86)\Common Files\Symbian\tools;", "")
+
+. 'T:\dev\personal\bin\ps1\shell.ps1'
 
 # Load posh-git example profile
 . 'T:\dev\posh-git\profile.example.ps1'
