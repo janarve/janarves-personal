@@ -5,6 +5,16 @@ A tool to switch between default compiler on windows.
 .DESCRIPTION
 You can switch to another compiler version (e.g. msvc2008)
 You can also switch between x86 and amd64 architecture, (using the current compiler version).
+Available compilers and architectures:
+ | Compiler Spec | Architectures |
+ +==============+================+
+ | mingw46       | x86           |
+ | msvc2008      | x86 | amd64   |
+ | msvc2010expr  | x86 | amd64   |
+ 
+.\setcompiler x86 mingw46
+
+mingw46
 
 .EXAMPLE
 .\setcompiler.ps1 amd64
@@ -31,7 +41,7 @@ param([string]$architecture = $null, [string]$compiler = $null, [switch]$help)
 function currentCompilerString()
 {
     $error.Clear()
-    cl 2>null
+    cl 2>$null
     $error.Reverse()
     $error | % { $_.TargetObject }
 }
@@ -169,7 +179,7 @@ function setCompiler($arch, $comp){
             #$registryPath = "HKLM:\$keyBase\Microsoft\VisualStudio\9.0\Setup\VC\"
             #$compilerFound = Test-Path $registryPath
             #if ($compilerFound) {
-            #	$VCINSTALLDIR = Get-ItemProperty $registryPath -name "ProductDir"
+            #   $VCINSTALLDIR = Get-ItemProperty $registryPath -name "ProductDir"
             #}
 
             $compilerFound = $true
