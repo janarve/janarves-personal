@@ -1,4 +1,7 @@
-﻿
+(Get-Host).UI.RawUI.BackgroundColor="black"
+(Get-Host).UI.RawUI.ForegroundColor="Blue"
+cls
+
 function Get-Batchfile ($file) {
 	# we need to chdir to the path, because cmd cannot take an path argument
 	# that contain spaces (e.g. c:\Program Files\)
@@ -47,21 +50,8 @@ function SetCL($version = "7.1")
 
 function QT()
 {
-    setcompiler amd64 msvc2010expr
-
+    setcompiler amd64 msvc2008
     $env:CL = "/MP"
-    
-    $env:Include+=";t:\dev\devtools\database\include\tds;t:\dev\devtools\database\include\db2;t:\dev\devtools\database\include\fbird"
-    $env:Include+=";t:\dev\devtools\database\include\oci;t:\dev\devtools\database\include\mysql;t:\dev\devtools\database\include\psql"
-    $env:Include+=";t:\3rdparty\openssl64\include"
-    $env:Include+=";t:\3rdparty\expat\Source\lib"
-    
-    $env:Lib="t:\dev\devtools\database\lib\msvc;$env:Lib"
-    $env:Lib+=";t:\3rdparty\openssl64\lib"
-    $env:Lib+=";t:\3rdparty\expat\bin"
-
-    $env:Path = $env:Path.Replace("t:\dev\personal\bin;", "")
-    $env:Path+=";t:\dev\qt-stable\bin"
 }
 
 
@@ -70,16 +60,12 @@ function e()
 	explorer .
 }
 
-
-(Get-Host).UI.RawUI.BackgroundColor="black"
-(Get-Host).UI.RawUI.ForegroundColor="Blue"
-
-
-$env:Path = "c:\Perl64\bin;" + $env:Path
-$env:Path += ";c:\Program Files (x86)\Git\bin"
-$env:Path+=';t:\dev\personal\bin\ps1\'
-
 QT
+
+# eeew... Get rid of symbian toolchain (might confuse mingw)
+$env:Path = $env:Path.replace("C:\Program Files (x86)\Common Files\Symbian\tools;", "")
+
+. 'T:\dev\personal\bin\ps1\shell.ps1'
 
 # Load posh-git example profile
 . 'T:\dev\posh-git\profile.example.ps1'

@@ -5,6 +5,16 @@ A tool to switch between default compiler on windows.
 .DESCRIPTION
 You can switch to another compiler version (e.g. msvc2008)
 You can also switch between x86 and amd64 architecture, (using the current compiler version).
+Available compilers and architectures:
+ | Compiler Spec | Architectures |
+ +==============+================+
+ | mingw46       | x86           |
+ | msvc2008      | x86 | amd64   |
+ | msvc2010expr  | x86 | amd64   |
+ 
+.\setcompiler x86 mingw46
+
+mingw46
 
 .EXAMPLE
 .\setcompiler.ps1 amd64
@@ -31,7 +41,7 @@ param([string]$architecture = $null, [string]$compiler = $null, [switch]$help)
 function currentCompilerString()
 {
     $error.Clear()
-    cl 2>null
+    cl 2>$null
     $error.Reverse()
     $error | % { $_.TargetObject }
 }
@@ -74,10 +84,25 @@ function setCompiler($arch, $comp){
 
     $keyBase="Software"
     $compilerFound = $false
+    $mingw = $false
 
     ### msvc2010expr
     $archPart = "amd64"
     switch ($comp) {
+        "mingw44" {
+            if (Test-Path "t:\bin\MinGW-gcc440\mingw\bin") {
+                $compilerFound = $true
+                $env:Path="t:\bin\MinGW-gcc440\mingw\bin;$env:Path"
+            }
+            $mingw = $true
+        }
+        "mingw46" {
+            if (Test-Path "c:\mingw\bin\mingw32-gcc-4.6*.exe") {
+                $compilerFound = $true
+                $env:Path="c:\mingw\bin;$env:Path"
+            }
+            $mingw = $true
+        }
         "msvc2010expr" {
             $registryPath = "HKLM:\$keyBase\Microsoft\VisualStudio\SxS\VC7"
             $compilerFound = Test-Path $registryPath
@@ -148,13 +173,13 @@ function setCompiler($arch, $comp){
                 $env:MSSdk = $WindowsSDKDir
 
                 Write-Host "Setting compiler to msvc2010 express ($arch)"
-                }
             }
+        }
         "msvc2008" {
             #$registryPath = "HKLM:\$keyBase\Microsoft\VisualStudio\9.0\Setup\VC\"
             #$compilerFound = Test-Path $registryPath
             #if ($compilerFound) {
-            #	$VCINSTALLDIR = Get-ItemProperty $registryPath -name "ProductDir"
+            #   $VCINSTALLDIR = Get-ItemProperty $registryPath -name "ProductDir"
             #}
 
             $compilerFound = $true
@@ -214,39 +239,48 @@ function setCompiler($arch, $comp){
         Write-Host "No such compiler installed on this system"
         Exit-PSSession
     }
-
+    
     if ($arch -eq "x86" -or $arch -eq "amd64") {
-        if ($env:SETCOMPILER_LIB) {
-            $env:LIB = $env:LIB.replace($env:SETCOMPILER_LIB, $NewLIB)
-        } else {
-            if ($env:LIB) {
-                $env:LIB += ";"
-            }
-            $env:LIB += ";" + $NewLIB
-        }
-        $env:SETCOMPILER_LIB = $NewLIB
+        updateEnvironmentPathValue "LIB" "SETCOMPILER_LIB" $NewLIB
+        updateEnvironmentPathValue "INCLUDE" "SETCOMPILER_INCLUDE" $NewINCLUDE
+        updateEnvironmentPathValue "PATH" "SETCOMPILER_PATH" $NewPATH
 
-        if ($env:SETCOMPILER_INCLUDE) {
-            $env:INCLUDE = $env:INCLUDE.replace($env:SETCOMPILER_INCLUDE, $NewINCLUDE)
-        } else {
-            if ($env:INCLUDE) {
-                $env:INCLUDE += ";"
-            }
-            $env:INCLUDE += $NewINCLUDE
-        }
-        $env:SETCOMPILER_INCLUDE = $NewINCLUDE
-
-        if ($env:SETCOMPILER_PATH) {
-            $env:PATH = $env:PATH.replace($env:SETCOMPILER_PATH, $NewPATH)
-        } else {
-            $env:PATH += ";" + $NewPATH
-        }
-
-        $env:SETCOMPILER_PATH = $NewPATH
+        #$env:SETCOMPILER_PATH = $NewPATH
     }
 
     $env:CL = "/MP"
 
+}
+
+function updateEnvironmentPathValue($envName, $envOldValue, $newValue)
+{
+    $result = $null
+    
+    $oldVar = $null
+    if (Test-Path -path env:$envOldValue) {
+        $oldVar = (Get-Item -path env:$envOldValue).Value
+    }
+
+    $nameVar = $null
+    if (Test-Path -path env:$envName) {
+        $nameVar = (Get-Item -path env:$envName).Value
+    }
+    
+    if ($oldVar) {
+        $result = $nameVar.replace($oldVar, $newValue)
+    } else {
+        if ($newValue) {
+            if ($nameVar) {
+                $result = $nameVar + ";"
+            }
+            $result += $newValue
+        }
+    }
+
+    if ($result) {
+        Set-Item -path env:$envName -value "$result"
+        Set-Item -path env:$envOldValue -value "$newValue"
+    }
 }
 
 # Main function
