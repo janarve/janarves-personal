@@ -15,7 +15,7 @@ function Get-LocalOrParentPath($path) {
     while ($checkIn -ne $NULL) {
         $pathToTest = [System.IO.Path]::Combine($checkIn.fullname, $path)
         if (Test-Path $pathToTest) {
-            return $pathToTest;
+            return $pathToTest
         } else {
             $checkIn = $checkIn.parent
         }
