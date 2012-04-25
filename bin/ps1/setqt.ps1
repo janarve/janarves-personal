@@ -32,6 +32,11 @@ If QTREPOS is set to c:\dev, it will switch to the Qt version installed
 at c:\dev\qt-5\qtbase
 
 .EXAMPLE
+.\setqt.ps1 5
+If QTREPOS is set to c:\dev, it will switch to the Qt version installed
+at c:\dev\qt-5\qtbase
+
+.EXAMPLE
 .\setqt.ps1 47
 If QTREPOS is set to c:\dev, it will switch to the Qt version installed
 at c:\dev\qt-47
@@ -41,18 +46,22 @@ http://jans.tihlde.org
 #>
 param([string]$qtdir, [switch]$clean)
 
-function setPath($loc){
-    # Remove old QTDIR\bin from PATH
-    if ($env:QTDIR) {
-        $pattern = ";$env:QTDIR\bin"
-        $env:PATH = $env:PATH.replace($pattern, "")
-    }
-    $newQTDIR = $null
-    if (Test-Path $loc) {
+function resolveQtPath($loc)
+{
+   if (Test-Path $loc) {
         # Try relative and absolute
         $loc = Resolve-Path $loc
-        $newQTDIR = $loc
-    } else {
+        if (Test-Path ("$loc\qtbase\bin")) {
+            $loc = "$loc\qtbase"
+        }
+        return $loc
+    }
+    return $null
+}
+
+function setPath($loc){
+    $newQTDIR = resolveQtPath($loc)
+    if (!$newQTDIR) {
         if (!$Env:QTREPOS) {
             $qtRepos = Read-host "Please enter the complete path to your Qt depot (T:\dev)"
             if (!$qtRepos) {
@@ -70,13 +79,16 @@ function setPath($loc){
                 Write-Host "Qt depot location temporarily stored and will be available in this session only."
             }
         }
-
-        if (Test-Path ($Env:QTREPOS + "\qt-" + $loc)) {
-            $loc = Resolve-Path ($Env:QTREPOS + "\qt-" + $loc)
-            $newQTDIR = $loc
-        }
+        $newQTDIR = resolveQtPath($Env:QTREPOS + "\qt-" + $loc)
     }
     if ($newQTDIR) {
+        # If successful, first remove old QTDIR\bin from PATH
+        if ($env:QTDIR) {
+            $pattern = "$env:QTDIR\bin"
+            $env:PATH = $env:PATH.replace(";$pattern", "")      #doing it twice in case its the first or last item in the Path
+            $env:PATH = $env:PATH.replace("$pattern;", "")
+        }
+
         $Env:QTDIR = $newQTDIR
         $Env:Path = "$newQTDIR\bin;" + $Env:Path
         Write-Host "Qt version is set to $newQTDIR"
