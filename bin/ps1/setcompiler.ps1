@@ -141,8 +141,12 @@ function setCompiler($arch, $comp){
                     $NewLibs += "$($VCINSTALLDIR)ATLMFC\LIB"
                 }
 
-                #VSTools - ignore for now
-                #SET "VSTools=%VSINSTALLDIR%Common7\IDE;%VSINSTALLDIR%Common7\Tools;"
+                ### VSTools
+                $VSINSTALLDIR = "${env:ProgramFiles(x86)}" + "\Microsoft Visual Studio 10.0\"
+                $VSTools = ""
+                if (Test-Path $VSINSTALLDIR) {
+                    $VSTools=";${VSINSTALLDIR}Common7\IDE;${VSINSTALLDIR}Common7\Tools"
+                }
 
                 ### Gather information for $env:PATH
                 #VCTools
@@ -164,6 +168,7 @@ function setCompiler($arch, $comp){
                 }
                 $SdkTools += ";$($WindowsSdkDir)Bin"
 
+                $newPaths += $VSTools
                 $newPaths += $VCTools
                 $newPaths += $SDKTools
 
