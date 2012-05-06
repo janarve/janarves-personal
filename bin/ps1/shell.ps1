@@ -1,3 +1,13 @@
+
+function e($path)
+{
+    if (! $path) {
+        $path = "."
+    }
+	explorer $path
+}
+
+
 ### Detect Active State Perl
 if (Test-Path "c:\Perl64\bin") {
     $env:Path = "c:\Perl64\bin;" + $env:PATH

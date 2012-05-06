@@ -54,12 +54,6 @@ function QT()
     $env:CL = "/MP"
 }
 
-
-function e()
-{
-	explorer .
-}
-
 QT
 
 # eeew... Get rid of symbian toolchain (might confuse mingw)
