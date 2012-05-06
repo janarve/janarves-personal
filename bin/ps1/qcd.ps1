@@ -6,7 +6,7 @@ if (!$env:QTDIR) {
 } elseif (!$subdir) {
     Push-Location $env:QTDIR
 } else {
-    foreach ($s in @(".", "..", "src", "examples")) {
+    foreach ($s in @("src", "examples", ".", "..")) {
         $dest = "$env:QTDIR\$s\$subdir"
         if (Test-Path $dest) {
             Push-Location $dest
