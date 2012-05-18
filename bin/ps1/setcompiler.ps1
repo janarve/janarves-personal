@@ -103,7 +103,7 @@ function setCompiler($arch, $comp){
             }
             $mingw = $true
         }
-        "msvc2010expr" {
+        "msvc2010" {
             $registryPath = "HKLM:\$keyBase\Microsoft\VisualStudio\SxS\VC7"
             $compilerFound = Test-Path $registryPath
             if ($compilerFound) {
@@ -124,7 +124,8 @@ function setCompiler($arch, $comp){
                 ### Gather information for $env:LIB
                 $VCLibraries = "$($VCINSTALLDIR)Lib"
                 if ($arch -eq "amd64") {
-                    $NewLibs += "$VCLibraries\amd64;$OSLibraries\X64"
+                    $NewLibs += "$VCLibraries\amd64"
+                    $NewLibs += "$OSLibraries\X64"
                 } else {
                     $NewLibs += $VCLibraries
                     $NewLibs += $OSLibraries
