@@ -88,6 +88,14 @@ function setCompiler($arch, $comp){
 
     ### msvc2010expr
     $archPart = "amd64"
+
+    ### Aliases
+    if ($comp -eq "2008") {
+        $comp = "msvc2008"
+    } elseif ($comp -eq "2010") {
+        $comp = "msvc2010"
+    }
+
     switch ($comp) {
         "mingw44" {
             if (Test-Path "t:\bin\MinGW-gcc440\mingw\bin") {
@@ -178,7 +186,7 @@ function setCompiler($arch, $comp){
                 $NewLIB = $newLibs -Join ";"
                 $env:MSSdk = $WindowsSDKDir
 
-                Write-Host "Setting compiler to msvc2010 express ($arch)"
+                Write-Host "Setting compiler to msvc2010 ($arch)"
             }
         }
         "msvc2008" {
@@ -207,26 +215,15 @@ function setCompiler($arch, $comp){
             if ($arch -eq "amd64") {
                 $NewLIB  = "C:\Program Files (x86)\Microsoft Visual Studio 9.0\VC\Lib\amd64"
                 $NewLIB += ";C:\Program Files\Microsoft SDKs\Windows\v7.0\Lib\X64"
-                $NewLIB += ";t:\3rdparty\openssl64\lib"
 
                 $NewPATH  = "C:\Program Files (x86)\Microsoft Visual Studio 9.0\VC\Bin\amd64"
                 $NewPATH += ";C:\Program Files\Microsoft SDKs\Windows\v7.0\Bin\x64"
-
             }
 
-
-            ### common stuff ###
-            $NewLIB+=";t:\3rdparty\expat\bin"
-            $NewLIB+=";t:\dev\devtools\database\lib\msvc"
 
             $NewINCLUDE+=";C:\Program Files (x86)\Microsoft Visual Studio 9.0\VC\INCLUDE"
             $NewINCLUDE+=";C:\Program Files\Microsoft SDKs\Windows\v7.0\Include"
             $NewINCLUDE+=";C:\Program Files\Microsoft SDKs\Windows\v7.0\Include\gl"
-
-            $NewINCLUDE+=";t:\dev\devtools\database\include\tds;t:\dev\devtools\database\include\db2;t:\dev\devtools\database\include\fbird"
-            $NewINCLUDE+=";t:\dev\devtools\database\include\oci;t:\dev\devtools\database\include\mysql;t:\dev\devtools\database\include\psql"
-            $NewINCLUDE+=";t:\3rdparty\openssl64\include"
-            $NewINCLUDE+=";t:\3rdparty\expat\Source\lib"
 
             $NewPATH+=";C:\Program Files (x86)\Microsoft Visual Studio 9.0\Common7\IDE"
             $NewPATH+=";C:\Program Files (x86)\Microsoft Visual Studio 9.0\VC\vcpackages"
@@ -245,26 +242,30 @@ function setCompiler($arch, $comp){
         Write-Host "No such compiler installed on this system"
         Exit-PSSession
     }
-    
+
+    $Host.UI.RawUI.WindowTitle = "[PS] $comp-$arch"
+
     if ($arch -eq "x86" -or $arch -eq "amd64") {
         updateEnvironmentPathValue "LIB" "SETCOMPILER_LIB" $NewLIB
         updateEnvironmentPathValue "INCLUDE" "SETCOMPILER_INCLUDE" $NewINCLUDE
         updateEnvironmentPathValue "PATH" "SETCOMPILER_PATH" $NewPATH
-
-        #$env:SETCOMPILER_PATH = $NewPATH
     }
 
-    $env:CL = "/MP"
-
+    if ($env:CL -notmatch '[/-MP]') {
+        $env:CL += "/MP"
+    }
 }
 
-function updateEnvironmentPathValue($envName, $envOldValue, $newValue)
+### Appends $newValue to the environment variable specified by $envName
+### Stores what was appended to $envNameAppendedPortion in order to know
+### how to restore it back to its original form.
+function updateEnvironmentPathValue($envName, $envNameAppendedPortion, $newValue)
 {
     $result = $null
     
     $oldVar = $null
-    if (Test-Path -path env:$envOldValue) {
-        $oldVar = (Get-Item -path env:$envOldValue).Value
+    if (Test-Path -path env:$envNameAppendedPortion) {
+        $oldVar = (Get-Item -path env:$envNameAppendedPortion).Value
     }
 
     $nameVar = $null
@@ -285,7 +286,7 @@ function updateEnvironmentPathValue($envName, $envOldValue, $newValue)
 
     if ($result) {
         Set-Item -path env:$envName -value "$result"
-        Set-Item -path env:$envOldValue -value "$newValue"
+        Set-Item -path env:$envNameAppendedPortion -value "$newValue"
     }
 }
 
