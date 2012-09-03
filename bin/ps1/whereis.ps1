@@ -1,7 +1,6 @@
-﻿$firstArg = $args[0]
+$firstArg = $args[0]
 
 $validExecutableExtentions = @("exe", "com", "ps1", "bat")
-# Set the Qt environment; QTDIR QTDEPOT and PATH
 function whereIs($needle){
 	$splitPath = $Env:path.split(';')
     $found = 0
