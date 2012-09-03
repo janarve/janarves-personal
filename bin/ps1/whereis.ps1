@@ -2,7 +2,7 @@ $firstArg = $args[0]
 
 $validExecutableExtentions = @("exe", "com", "ps1", "bat")
 function whereIs($needle){
-	$splitPath = $Env:path.split(';')
+    splitPath = $Env:path.split(';')
     $found = 0
     foreach($p in $splitPath){
         $fullPath = [System.IO.Path]::Combine($p, $needle)
@@ -30,22 +30,22 @@ function whereIs($needle){
 
 # Help function
 function getHelp(){
-	Write-Host "whereis searches through env:PATH to find the absolute location of the <filename>"
+    Write-Host "whereis searches through env:PATH to find the absolute location of the <filename>"
     Write-Host
     Write-Host "Usage:  whereis <filename>"
-    
+
 }
 
 # Main function
 function main($arguments)
 {
-	if($arguments.length -eq 0 -or $arguments[0] -match "-help"){
-		. getHelp
-		exit
-	} else {
+    if($arguments.length -eq 0 -or $arguments[0] -match "-help"){
+        . getHelp
+        exit
+    } else {
         . whereIs($arguments[0])
-		exit
-	}
+        exit
+    }
 }
 # Calling main function
 . main $args
