@@ -1,6 +1,8 @@
 @echo off
+
+SET BASE=%~dp0
 IF (%PROCESSOR_ARCHITECTURE%) EQU (AMD64) (
-    xxd-64.exe %*
+    %BASE%xxd-64.exe %*
 ) else (
-    xxd-32.exe %*
+    %BASE%xxd-32.exe %*
 )
