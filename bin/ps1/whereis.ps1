@@ -2,7 +2,7 @@ $firstArg = $args[0]
 
 $validExecutableExtentions = @("exe", "com", "ps1", "bat")
 function whereIs($needle){
-    splitPath = $Env:path.split(';')
+    $splitPath = $Env:path.split(';')
     $found = 0
     foreach($p in $splitPath){
         $fullPath = [System.IO.Path]::Combine($p, $needle)
