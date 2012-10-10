@@ -76,9 +76,9 @@ $env:QT_MESSAGE_PATTERN="%{file}(%{line}):%{message}"
 $env:GIT_TEMPLATE_DIR="t:\dev\devtools\git\template"
 
 if ($env:COMPUTERNAME -eq "AIRWOLF") {
-    setcompiler x86 msvc2008
+    setcompiler x86 msvc2010
 } else {
-    setcompiler amd64 msvc2010expr
+    setcompiler x86 msvc2010
 }
 $env:CL = "/MP"
 
