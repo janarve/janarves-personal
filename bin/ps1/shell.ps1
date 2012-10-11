@@ -18,18 +18,28 @@ function detectTools()
     } else {
         Write-Host "Python not found"
     }
+
+    ### Detect ICU runtime path
+    if (Test-Path "T:\3rdparty\icu4c-49_1_2-Win32-msvc10\icu\bin") {
+        $env:Path = "T:\3rdparty\icu4c-49_1_2-Win32-msvc10\icu\bin;" + $env:Path
+    } else {
+        Write-Host "ICU not found"
+    }
+
 }
 
 function detectInstalledLibraries() {
     $includeCandidates = @(
         "t:\3rdparty\openssl64\include",
-        "t:\3rdparty\expat\Source\lib"
+        "t:\3rdparty\expat\Source\lib",
+        "t:\3rdparty\icu4c-49_1_2-Win32-msvc10\icu\include"
     )
 
     $libCandidates = @(
         "t:\dev\devtools\database\lib\msvc",
         "t:\3rdparty\openssl64\lib",
-        "t:\3rdparty\expat\bin"
+        "t:\3rdparty\expat\bin",
+        "t:\3rdparty\icu4c-49_1_2-Win32-msvc10\icu\lib"
     )
 
     foreach ($sqldriver in @("tds", "db2", "fbird", "oci", "mysql", "psql")) {
@@ -69,7 +79,8 @@ detectInstalledLibraries
 $env:Path+=";t:\dev\personal\bin\ps1;t:\bin"
 $env:Path+=";c:\Program Files (x86)\Git\bin"
 ### Move to setqt.ps?
-$env:Path += ";t:\dev\qt-5\qtrepotools\bin"
+# unreliable, works only within the meta repo and its submodules
+# $env:Path += ";t:\dev\qt-5\qtrepotools\bin"
 
 $env:ARTISTIC_STYLE_OPTIONS="$USERPROFILE\astylerc"
 $env:QT_MESSAGE_PATTERN="%{file}(%{line}):%{message}"
