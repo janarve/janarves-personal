@@ -32,3 +32,7 @@ if (Test-Path Function:\TabExpansion) {
         }
     }
 }
+
+function getQtDir() {
+    (& qmake -query QT_INSTALL_PREFIX) -replace "/", "\"
+}

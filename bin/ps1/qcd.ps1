@@ -1,13 +1,22 @@
 param([string]$subdir)
 
-if (!$env:QTDIR) {
-    Write-Host "QTDIR not set. Run setqt <version>"
+$qtdir = $null
+if ($env:QTDIR) {
+    $qtdir = $env:QTDIR
+} elseif ($env:SETQT_PATH) {
+    $qtdir = $env:SETQT_PATH -replace "\\bin", ""
+}
+
+if (!$qtdir) {
+    Write-Host "Could not detect location of Qt, neither through QTDIR or SETQT_PATH. Run setqt <version>"
     return
-} elseif (!$subdir) {
-    Push-Location $env:QTDIR
+}
+
+if (!$subdir) {
+    Push-Location $qtdir
 } else {
     foreach ($s in @("src", "examples", ".", "..")) {
-        $dest = "$env:QTDIR\$s\$subdir"
+        $dest = "$qtdir\$s\$subdir"
         if (Test-Path $dest) {
             Push-Location $dest
             return
