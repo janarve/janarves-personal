@@ -46,6 +46,57 @@ function currentCompilerString()
     $error | % { $_.TargetObject }
 }
 
+function smartResolvePath($path)
+{
+    $splitted = $path -split "\\\.\.\\"
+    if ($splitted.count -eq 2) {
+        $first = Resolve-Path $splitted[0]
+        $last = $splitted[1]
+        return (Resolve-Path "$first\..\$last").Path
+    }
+    return (Resolve-Path $path).Path
+}
+
+function addUnique([ref]$arr, $item)
+{
+    if (! ($arr.Value -contains $item)) {
+        $arr.Value = $arr.Value + $item
+    }
+}
+
+function detectInstalledLibraries($arch, [ref]$newIncludes, [ref]$newLibs, [ref]$newPaths)
+{
+    # "include", "lib", "PATH"
+    $detectionVariables = @{
+        "x86" = @(
+            @("T:\3rdparty\icu*\icu\lib\..\include", "T:\3rdparty\icu*\icu\lib", "T:\3rdparty\icu*\icu\bin"),
+            #@("t:\3rdparty\openssl-1.0.0a\include", "t:\3rdparty\openssl-1.0.0a\out_win32", "t:\3rdparty\openssl-1.0.0a\out_win32"),
+            @("t:\3rdparty\expat\Source\lib", "t:\3rdparty\expat\bin", "t:\3rdparty\expat\bin"),
+            @("t:\dev\devtools\database\include\db2", "t:\dev\devtools\database\lib\msvc", "t:\dev\devtools\database\bin"),
+            @("t:\dev\devtools\database\include\fbird", "t:\dev\devtools\database\lib\msvc", "t:\dev\devtools\database\bin"),
+            @("t:\dev\devtools\database\include\mysql", "t:\dev\devtools\database\lib\msvc", "t:\dev\devtools\database\bin"),
+            @("t:\dev\devtools\database\include\oci", "t:\dev\devtools\database\lib\msvc", "t:\dev\devtools\database\bin"),
+            @("t:\dev\devtools\database\include\psql", "t:\dev\devtools\database\lib\msvc", "t:\dev\devtools\database\bin"),
+            @("t:\dev\devtools\database\include\tds", "t:\dev\devtools\database\lib\msvc", "t:\dev\devtools\database\bin")
+        );
+        "amd64" = @(
+            @("T:\3rdparty\icu*\icu\lib64\..\include", "T:\3rdparty\icu*\icu\lib64", "T:\3rdparty\icu*\icu\bin64"),
+            @("t:\3rdparty\openssl64\include", "t:\3rdparty\openssl64\lib", "t:\3rdparty\openssl64\bin")
+        )
+    }
+
+    #--------------------------------------
+    foreach($detectionVars in $detectionVariables[$arch]) {
+        $var = $detectionVars
+        if ((Test-Path $var[0]) -and (Test-Path $var[1]) -and (Test-Path $var[2])) {
+            addUnique ($newIncludes) (smartResolvePath $var[0])
+            addUnique ($newLibs) (smartResolvePath $var[1])
+            addUnique ($newPaths) (smartResolvePath $var[2])
+        }
+    }
+}
+
+
 function setCompiler($arch, $comp){
     if ($arch -and !($arch -eq "x86" -or $arch -eq "amd64")) {
         Write-Output "Invalid architecture ""$arch"". Can only  be x86 or amd64."
@@ -160,11 +211,9 @@ function setCompiler($arch, $comp){
                 ### Gather information for $env:PATH
                 #VCTools
                 $VCTools = "$($VCINSTALLDIR)bin"
-                switch ($arch) {
-                    "amd64" {
-                        if (Test-Path "$VCTools\amd64\cl.exe") {
-                            $VCTools = "$VCTools\amd64"
-                        }
+                if ($arch -eq "amd64") {
+                    if (Test-Path "$VCTools\amd64\cl.exe") {
+                        $VCTools = "$VCTools\amd64"
                     }
                 }
                 $VCTools+= ";$VCTools\VCPackages"
@@ -181,9 +230,6 @@ function setCompiler($arch, $comp){
                 $newPaths += $VCTools
                 $newPaths += $SDKTools
 
-                $NewPATH = $newPaths -Join ";"
-                $NewINCLUDE = $newIncludes -Join ";"
-                $NewLIB = $newLibs -Join ";"
                 $env:MSSdk = $WindowsSDKDir
 
                 Write-Host "Setting compiler to msvc2010 ($arch)"
@@ -198,41 +244,41 @@ function setCompiler($arch, $comp){
 
             $compilerFound = $true
             if ($arch -eq "x86") {
-                $NewLIB  = "C:\Program Files (x86)\Microsoft Visual Studio 9.0\VC\ATLMFC\LIB"
-                $NewLIB +=";C:\Program Files (x86)\Microsoft Visual Studio 9.0\VC\LIB"
-                $NewLIB +=";C:\Program Files\Microsoft SDKs\Windows\v7.0\lib"
+                $NewLibs += "C:\Program Files (x86)\Microsoft Visual Studio 9.0\VC\ATLMFC\LIB"
+                $NewLibs += "C:\Program Files (x86)\Microsoft Visual Studio 9.0\VC\LIB"
+                $NewLibs += "C:\Program Files\Microsoft SDKs\Windows\v7.0\lib"
 
-                $NewINCLUDE+=";C:\Program Files (x86)\Microsoft Visual Studio 9.0\VC\ATLMFC\INCLUDE"
+                $NewIncludes +=";C:\Program Files (x86)\Microsoft Visual Studio 9.0\VC\ATLMFC\INCLUDE"
 
-                $NewPATH  = "C:\Program Files (x86)\Microsoft Visual Studio 9.0\VC\BIN"
-                $NewPATH +=";C:\Program Files (x86)\Microsoft Visual Studio 9.0\Common7\Tools"
-                $NewPATH +=";C:\Program Files (x86)\Microsoft Visual Studio 9.0\Common7\Tools\bin"
-                $NewPATH +=";C:\Windows\Microsoft.NET\Framework"
-                $NewPATH +=";C:\Windows\Microsoft.NET\Framework\Microsoft .NET Framework 3.5 (Pre-Release Version)"
-                $NewPATH +=";C:\Windows\Microsoft.NET\Framework\v2.0.50727"
+                $NewPaths += "C:\Program Files (x86)\Microsoft Visual Studio 9.0\VC\BIN"
+                $NewPaths += "C:\Program Files (x86)\Microsoft Visual Studio 9.0\Common7\Tools"
+                $NewPaths += "C:\Program Files (x86)\Microsoft Visual Studio 9.0\Common7\Tools\bin"
+                $NewPaths += "C:\Windows\Microsoft.NET\Framework"
+                $NewPaths += "C:\Windows\Microsoft.NET\Framework\Microsoft .NET Framework 3.5 (Pre-Release Version)"
+                $NewPaths += "C:\Windows\Microsoft.NET\Framework\v2.0.50727"
 
             }
             if ($arch -eq "amd64") {
-                $NewLIB  = "C:\Program Files (x86)\Microsoft Visual Studio 9.0\VC\Lib\amd64"
-                $NewLIB += ";C:\Program Files\Microsoft SDKs\Windows\v7.0\Lib\X64"
+                $NewLibs += "C:\Program Files (x86)\Microsoft Visual Studio 9.0\VC\Lib\amd64"
+                $NewLibs += ";C:\Program Files\Microsoft SDKs\Windows\v7.0\Lib\X64"
 
-                $NewPATH  = "C:\Program Files (x86)\Microsoft Visual Studio 9.0\VC\Bin\amd64"
-                $NewPATH += ";C:\Program Files\Microsoft SDKs\Windows\v7.0\Bin\x64"
+                $NewPaths += "C:\Program Files (x86)\Microsoft Visual Studio 9.0\VC\Bin\amd64"
+                $NewPaths += ";C:\Program Files\Microsoft SDKs\Windows\v7.0\Bin\x64"
             }
 
 
-            $NewINCLUDE+=";C:\Program Files (x86)\Microsoft Visual Studio 9.0\VC\INCLUDE"
-            $NewINCLUDE+=";C:\Program Files\Microsoft SDKs\Windows\v7.0\Include"
-            $NewINCLUDE+=";C:\Program Files\Microsoft SDKs\Windows\v7.0\Include\gl"
+            $NewIncludes += "C:\Program Files (x86)\Microsoft Visual Studio 9.0\VC\INCLUDE"
+            $NewIncludes += "C:\Program Files\Microsoft SDKs\Windows\v7.0\Include"
+            $NewIncludes += "C:\Program Files\Microsoft SDKs\Windows\v7.0\Include\gl"
 
-            $NewPATH+=";C:\Program Files (x86)\Microsoft Visual Studio 9.0\Common7\IDE"
-            $NewPATH+=";C:\Program Files (x86)\Microsoft Visual Studio 9.0\VC\vcpackages"
-            $NewPATH+=";C:\Windows\Microsoft.NET\Framework64\v3.5;"
-            $NewPATH+=";C:\Windows\Microsoft.NET\Framework\v3.5"
-            $NewPATH+=";C:\Windows\Microsoft.NET\Framework64\v2.0.50727"
-            $NewPATH+=";C:\Windows\Microsoft.NET\Framework\v2.0.50727"
-            $NewPATH+=";C:\Program Files\Microsoft SDKs\Windows\v7.0\Setup"
-            $NewPATH+=";C:\Program Files\Microsoft SDKs\Windows\v7.0\Bin"
+            $NewPaths += "C:\Program Files (x86)\Microsoft Visual Studio 9.0\Common7\IDE"
+            $NewPaths += "C:\Program Files (x86)\Microsoft Visual Studio 9.0\VC\vcpackages"
+            $NewPaths += "C:\Windows\Microsoft.NET\Framework64\v3.5;"
+            $NewPaths += "C:\Windows\Microsoft.NET\Framework\v3.5"
+            $NewPaths += "C:\Windows\Microsoft.NET\Framework64\v2.0.50727"
+            $NewPaths += "C:\Windows\Microsoft.NET\Framework\v2.0.50727"
+            $NewPaths += "C:\Program Files\Microsoft SDKs\Windows\v7.0\Setup"
+            $NewPaths += "C:\Program Files\Microsoft SDKs\Windows\v7.0\Bin"
 
             $env:MSSdk="C:\Program Files\Microsoft SDKs\Windows\v7.0"
         }
@@ -243,17 +289,27 @@ function setCompiler($arch, $comp){
         Exit-PSSession
     }
 
-    $Host.UI.RawUI.WindowTitle = "[PS] $comp-$arch"
+    detectInstalledLibraries $arch ([ref]$NewIncludes) ([ref]$NewLibs) ([ref]$NewPaths)
+
+    #
+    # We've finally gathered all include, lib and path paths.
+    # Join the arrays, and update the proper environment variables
+    #
+    $NewINCLUDE = $newIncludes -Join ";"
+    $NewLIB = $newLibs -Join ";"
+    $NewPATH = $newPaths -Join ";"
 
     if ($arch -eq "x86" -or $arch -eq "amd64") {
-        updateEnvironmentPathValue "LIB" "SETCOMPILER_LIB" $NewLIB
         updateEnvironmentPathValue "INCLUDE" "SETCOMPILER_INCLUDE" $NewINCLUDE
+        updateEnvironmentPathValue "LIB" "SETCOMPILER_LIB" $NewLIB
         updateEnvironmentPathValue "PATH" "SETCOMPILER_PATH" $NewPATH
     }
 
     if ($env:CL -notmatch '[/-MP]') {
         $env:CL += "/MP"
     }
+
+    $Host.UI.RawUI.WindowTitle = "[PS] $comp-$arch"
 }
 
 ### Appends $newValue to the environment variable specified by $envName

@@ -18,51 +18,6 @@ function detectTools()
     } else {
         Write-Host "Python not found"
     }
-
-    ### Detect ICU runtime path
-    if (Test-Path "T:\3rdparty\icu4c-49_1_2-Win32-msvc10\icu\bin") {
-        $env:Path = "T:\3rdparty\icu4c-49_1_2-Win32-msvc10\icu\bin;" + $env:Path
-    } else {
-        Write-Host "ICU not found"
-    }
-
-}
-
-function detectInstalledLibraries() {
-    $includeCandidates = @(
-        "t:\3rdparty\openssl64\include",
-        "t:\3rdparty\expat\Source\lib",
-        "t:\3rdparty\icu4c-49_1_2-Win32-msvc10\icu\include"
-    )
-
-    $libCandidates = @(
-        "t:\dev\devtools\database\lib\msvc",
-        "t:\3rdparty\openssl64\lib",
-        "t:\3rdparty\expat\bin",
-        "t:\3rdparty\icu4c-49_1_2-Win32-msvc10\icu\lib"
-    )
-
-    foreach ($sqldriver in @("tds", "db2", "fbird", "oci", "mysql", "psql")) {
-        $includeCandidates += "t:\dev\devtools\database\include\$sqldriver"
-    }
-
-    foreach ($inclPath in $includeCandidates) {
-        if (Test-Path $inclPath) {
-            if ($env:Include) {
-                $env:Include+=";"
-            }
-            $env:Include+= "$inclPath"
-        }
-    }
-
-    foreach ($libPath in $libCandidates) {
-        if (Test-Path $libPath) {
-            if ($env:Lib) {
-                $env:Lib+=";"
-            }
-            $env:Lib+= "$libPath"
-        }
-    }
 }
 
 function e($path)
@@ -74,7 +29,6 @@ function e($path)
 }
 
 detectTools
-detectInstalledLibraries
 
 $env:Path+=";t:\dev\personal\bin\ps1;t:\bin"
 $env:Path+=";c:\Program Files (x86)\Git\bin"
