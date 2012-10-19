@@ -5,13 +5,8 @@ function GetGitCurrentBranch()
     git rev-parse --abbrev-ref HEAD
 }
 
-$issueDirs = @("t:\dev\issues", "t:\tasks")
-$qtdir = $null
-if ($env:QTDIR) {
-    $qtdir = $env:QTDIR
-} elseif ($env:SETQT_PATH) {
-    $qtdir = $env:SETQT_PATH -replace "\\bin", ""
-}
+$issueDirs = @("$env:QTREPOS\issues", "t:\tasks")
+$qtdir = Get-QtBasePath
 
 if (!$qtdir) {
     Write-Host "Could not detect location of Qt, neither through QTDIR or SETQT_PATH. Run setqt <version>"

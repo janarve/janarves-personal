@@ -103,7 +103,7 @@ function setPath($loc){
         $newQTDIR = resolveQtPath($loc)
         if (!$newQTDIR) {
             if (!$Env:QTREPOS) {
-                $qtRepos = Read-host "Please enter the complete path to your Qt depot (T:\dev)"
+                $qtRepos = Read-host "Please enter the complete path to your Qt development area (T:\dev)"
                 if (!$qtRepos) {
                     $qtRepos = "T:\dev"
                 }

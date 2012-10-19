@@ -9,8 +9,8 @@ if (Test-Path Function:\TabExpansion) {
     Write-Host "installed qcd tab expansion"    
     
     function TabExpansion($line, $lastWord) {
-        
-        if ($env:QTDIR) {
+        $qtdir = Get-QtBasePath
+        if ($qtdir) {
             $lastBlock = [regex]::Split($line, '[|;]')[-1].TrimStart()
             
             switch -regex ($lastBlock) {
@@ -21,7 +21,7 @@ if (Test-Path Function:\TabExpansion) {
                     $lastSlash = $lastSlash + 1
                     $base = $arg.substring(0, $lastSlash)
                     foreach ($s in @("src", "examples", ".", "..")) {   # Order must be the same as in qcd
-                        Get-ChildItem "$env:QTDIR\$s\$lastWord*" | ForEach-Object { $base + $_.Name }
+                        Get-ChildItem "$qtdir\$s\$lastWord*" | ForEach-Object { $base + $_.Name }
                     }
                 }
                 # Fall back on existing tab expansion
@@ -33,6 +33,11 @@ if (Test-Path Function:\TabExpansion) {
     }
 }
 
-function getQtDir() {
-    (& qmake -query QT_INSTALL_PREFIX) -replace "/", "\"
+function Get-QtBasePath() {
+    if ($env:SETQT_PATH) {
+        (Resolve-Path "$env:SETQT_PATH\..").Path
+    } else {
+#    (& qmake -query QT_INSTALL_PREFIX) -replace "/", "\"
+        return $null
+    }
 }
