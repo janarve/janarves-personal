@@ -36,30 +36,37 @@ if (%1) EQU (gnuwin32) (
 
 :use_asperl
 SET PATH=%PATH%;%USE_ASPERL_DESC%
+echo [Perl]     %USE_ASPERL_DESC%
 goto :EOF
 
 :use_bzr
 SET PATH=%PATH%;%USE_BZR_DESC%
+echo [Bazaar]   %USE_ASPERL_DESC%
 goto :EOF
 
 :use_cmake
 set PATH=%PATH%;c:\Program Files (x86)\CMake 2.8\bin
+echo [CMake]    %USE_CMAKE_DESC%
 goto :EOF
 
 :use_git
 SET PATH=%PATH%;%USE_GIT_DESC%
+set USE_GIT_DESC=%GITPATH%\bin
 goto :EOF
 
 :use_gnuwin32
 SET PATH=%USE_GNUWIN32_DESC%;%PATH%
+echo [GnuWin32] %USE_GNUWIN32_DESC%
 goto :EOF
 
 :use_hg
 SET PATH=%PATH%;%USE_HG_DESC%
+echo [hg]       %USE_HG_DESC%
 goto :EOF
 
 :use_python
 SET PATH=%PATH%;%USE_PYTHON_DESC%
+echo [Python]   %USE_PYTHON_DESC%
 goto :EOF
 
 REM *****************************************************************
@@ -110,7 +117,6 @@ if EXIST "%GITPATH%\bin\git.exe" (
 
 goto detect_skip_git
 :detect_found_git
-set USE_GIT_DESC=%GITPATH%\bin
 :detect_skip_git
 
 

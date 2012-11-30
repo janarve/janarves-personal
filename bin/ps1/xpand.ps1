@@ -21,7 +21,7 @@ $expandTools = @{"7z.exe"    = @("HKCU:\Software\7-Zip", "Path");
 $expandExtensions = @{".7z"      = @(@("7z.exe",    "x"));
                       ".xz"      = @(@("7z.exe",    "x"));
                       ".tar.gz"  = @(@("tar.exe",   "zxf"));
-                      ".tar.bz2" = @(@("tar.exe",   "zxf"));
+                      ".tar.bz2" = @(@("tar.exe",   "jxf"));
                       ".zip"     = @(
                                      @("7z.exe",    "x"), 
                                      @("unzip.exe", $null)
