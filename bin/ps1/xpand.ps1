@@ -1,5 +1,8 @@
-param([string]$archive)
-
+param([string]$command, [string]$archive)
+if (!$command -or !$archive) {
+    Write-Host "Syntax: xpand <command> <file name>"
+    Exit-PSSession
+}
 function whereIs($needle){
     $splitPath = $Env:path.split(';')
     $found = $false
@@ -18,13 +21,16 @@ $expandTools = @{"7z.exe"    = @("HKCU:\Software\7-Zip", "Path");
                  "unzip.exe" = @()}
 
 
-$expandExtensions = @{".7z"      = @(@("7z.exe",    "x"));
-                      ".xz"      = @(@("7z.exe",    "x"));
-                      ".tar.gz"  = @(@("tar.exe",   "zxf"));
-                      ".tar.bz2" = @(@("tar.exe",   "zxf"));
-                      ".zip"     = @(
-                                     @("7z.exe",    "x"), 
-                                     @("unzip.exe", $null)
+$global:expandExtensions = @{".7z"      = @( @("7z.exe",    "x"));
+                             ".xz"      = @( @("7z.exe",    "x"));
+                             ".tar.gz"  = @( @("tar.exe",   "zxf", "zlf"));
+                             ".tar"     = @( @("7z.exe",    "x", "l"),
+                                             @("tar.exe",   "xf", "tf"));
+                             ".tar.bz2" = @( @("7z.exe",    "x", "l"),
+                                             @("tar.exe",   "jxf", "jlf"));
+                             ".zip"     = @(
+                                             @("7z.exe",    "x"),
+                                             @("unzip.exe", $null)
                                     )
                     }
 
@@ -33,8 +39,19 @@ foreach ($key in $expandExtensions.keys) {
         $candidatePrograms = $expandExtensions[$key]
         foreach($cmdList in $candidatePrograms) {
             $cmd = $cmdList[0]
-            $opt = $cmdList[1]
+
+            if ($command -eq "x") {
+                $opt = $cmdList[1]
+            }
+
+
+            if ($command -eq "l" -and ($cmdList.Length -gt 2)) {
+                $opt = $cmdList[2]
+            }
+
+            "opt: $opt"
             $arr = $expandTools[$cmd]
+            "arr: '$arr'"
             if ($arr.count -eq 2) {
                 # If array has 2 entries, it has:
                 # 0. registry path
@@ -45,6 +62,7 @@ foreach ($key in $expandExtensions.keys) {
                     $fullPath = (Get-ItemProperty $arr[0])."$keyName"
                     $progName = $cmd
                     $fullPath += "$progName"
+                    Write-Host $fullPath
                     if (Test-Path $fullPath) {
                         Write-Host "$fullPath $opt $archive"
                         & $fullPath $opt $archive
