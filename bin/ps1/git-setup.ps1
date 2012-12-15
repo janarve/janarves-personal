@@ -91,10 +91,15 @@ if ((Read-Host "Configure global .gitconfig? (y/N)") -eq "y") {
     GitConfigSet "alias.loginternal" "log --pretty=tformat:'commit %H%nAuthor: %an <%ae>%n (int): %aN <%aE>%nDate: %ad%n%n%s%n%n%b'"
     GitConfigSet "core.autocrlf" "true"
     GitConfigSet "alias.br" "branch"
-    GitConfigSet "alias.st" "status"
-    GitConfigSet "alias.co" "checkout"
     GitConfigSet "alias.ce" "config --global -e"
+    GitConfigSet "alias.co" "checkout"
+    GitConfigSet "alias.cp" "cherry-pick"
+    GitConfigSet "alias.di" "diff"
+    GitConfigSet "alias.pr" "pull --rebase"
+    GitConfigSet "alias.st" "status"
     GitConfigSet "alias.pushgerrit" "push gerrit HEAD:refs/for/master"
+    GitConfigSet "alias.pushgerrit48" "push gerrit HEAD:refs/for/4.8"
+    GitConfigSet "alias.currentbranch" "rev-parse --abbrev-ref HEAD"
 
     # Show resulting configuration
     git config --global --list

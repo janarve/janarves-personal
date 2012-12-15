@@ -69,6 +69,7 @@ function detectInstalledLibraries($arch, [ref]$newIncludes, [ref]$newLibs, [ref]
     # "include", "lib", "PATH"
     $detectionVariables = @{
         "x86" = @(
+            @("${env:DXSDK_DIR}Include", "${env:DXSDK_DIR}Lib\x86", "${env:DXSDK_DIR}Utilities\Bin\x86"),
             @("T:\3rdparty\icu*\icu\lib\..\include", "T:\3rdparty\icu*\icu\lib", "T:\3rdparty\icu*\icu\bin"),
             #@("t:\3rdparty\openssl-1.0.0a\include", "t:\3rdparty\openssl-1.0.0a\out_win32", "t:\3rdparty\openssl-1.0.0a\out_win32"),
             @("t:\3rdparty\expat\Source\lib", "t:\3rdparty\expat\bin", "t:\3rdparty\expat\bin"),
@@ -80,6 +81,8 @@ function detectInstalledLibraries($arch, [ref]$newIncludes, [ref]$newLibs, [ref]
             @("t:\dev\devtools\database\include\tds", "t:\dev\devtools\database\lib\msvc", "t:\dev\devtools\database\bin")
         );
         "amd64" = @(
+            @("${env:DXSDK_DIR}Include", "${env:DXSDK_DIR}Lib\x64", @("${env:DXSDK_DIR}Utilities\Bin\x86",
+                                                                      "${env:DXSDK_DIR}Utilities\Bin\x64")),
             @("T:\3rdparty\icu*\icu\lib64\..\include", "T:\3rdparty\icu*\icu\lib64", "T:\3rdparty\icu*\icu\bin64"),
             @("t:\3rdparty\openssl64\include", "t:\3rdparty\openssl64\lib", "t:\3rdparty\openssl64\bin")
         )
@@ -88,10 +91,27 @@ function detectInstalledLibraries($arch, [ref]$newIncludes, [ref]$newLibs, [ref]
     #--------------------------------------
     foreach($detectionVars in $detectionVariables[$arch]) {
         $var = $detectionVars
-        if ((Test-Path $var[0]) -and (Test-Path $var[1]) -and (Test-Path $var[2])) {
+        $pathIsValid = $false
+        if ($var[2] -is [array]) {
+            foreach ($p in $var[2]) {
+                $pathIsValid = Test-Path $p
+                if (!$pathIsValid) {
+                    break
+                }
+            }
+        } elseif ($var[2] -is [string]) {
+            $pathIsValid = Test-Path $var[2]
+        }
+        if ((Test-Path $var[0]) -and (Test-Path $var[1]) -and $pathIsValid) {
             addUnique ($newIncludes) (smartResolvePath $var[0])
             addUnique ($newLibs) (smartResolvePath $var[1])
-            addUnique ($newPaths) (smartResolvePath $var[2])
+            if ($var[2] -is [array]) {
+                foreach ($p in $var[2]) {
+                    addUnique ($newPaths) (smartResolvePath $p)
+                }
+            } else {
+                addUnique ($newPaths) (smartResolvePath $var[2])
+            }
         }
     }
 }
@@ -159,6 +179,13 @@ function setCompiler($arch, $comp){
             if (Test-Path "c:\mingw\bin\mingw32-gcc-4.6*.exe") {
                 $compilerFound = $true
                 $env:Path="c:\mingw\bin;$env:Path"
+            }
+            $mingw = $true
+        }
+        "mingw47" {
+            if (Test-Path "t:\bin\mingw-builds\bin\i686-w64-mingw32-g++.exe") {
+                $compilerFound = $true
+                $env:Path="t:\bin\mingw-builds\bin;$env:Path"
             }
             $mingw = $true
         }

@@ -284,3 +284,10 @@ function Get-QtBasePath() {
         return $null
     }
 }
+
+function Generate-Pro-File()
+{
+    & qmake -project
+}
+
+Set-Alias qp "Generate-Pro-File"
