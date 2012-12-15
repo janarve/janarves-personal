@@ -40,17 +40,46 @@ $env:ARTISTIC_STYLE_OPTIONS="$USERPROFILE\astylerc"
 $env:QT_MESSAGE_PATTERN="%{file}(%{line}):%{message}"
 $env:GIT_TEMPLATE_DIR="t:\dev\devtools\git\template"
 
-if ($env:COMPUTERNAME -eq "AIRWOLF") {
-    setcompiler x86 msvc2010
-} else {
-    setcompiler x86 msvc2010
-}
+setcompiler x86 msvc2010
+
 $env:CL = "/MP"
 
 # eeew... Get rid of symbian toolchain (might confuse mingw)
 $env:Path = $env:Path.replace("C:\Program Files (x86)\Common Files\Symbian\tools;", "")
 
+####################################################################
 # Load posh-git example profile
-. 'T:\dev\posh-git\profile.example.ps1'
+Push-Location 'T:\dev\posh-git'
+
+# Load posh-git module from current directory
+Import-Module .\posh-git
+
+# If module is installed in a default location ($env:PSModulePath),
+# use this instead (see about_Modules for more information):
+# Import-Module posh-git
+
+$global:GitPromptSettings.EnableFileStatus = $false
+# Set up a simple prompt, adding the git prompt parts inside git repos
+function prompt {
+    $realLASTEXITCODE = $LASTEXITCODE
+
+    # Reset color, which can be messed up by Enable-GitColors
+    $Host.UI.RawUI.ForegroundColor = $GitPromptSettings.DefaultForegroundColor
+
+    Write-Host($pwd) -nonewline
+
+    Write-VcsStatus
+
+    $global:LASTEXITCODE = $realLASTEXITCODE
+    return "> "
+}
+
+Enable-GitColors
+
+Pop-Location
+
+#Start-SshAgent -Quiet
+
+#. 'T:\dev\posh-git\profile.example.ps1'
 
 . 'qttabexp.ps1'
