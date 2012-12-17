@@ -105,7 +105,7 @@ switch ($command)
             $branch = $Args[0]
             $cmd = "git push gerrit HEAD:refs/for/$branch"
             Write-Host $cmd
-            . $cmd
+            Invoke-Expression $cmd
         }
     }
 }
