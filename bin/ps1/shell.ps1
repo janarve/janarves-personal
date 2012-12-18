@@ -108,6 +108,8 @@ Import-Module .\posh-git
 # Import-Module posh-git
 
 $global:GitPromptSettings.EnableFileStatus = $false
+$global:GitTabSettings.AllCommands = $true
+
 # Set up a simple prompt, adding the git prompt parts inside git repos
 function prompt {
     $realLASTEXITCODE = $LASTEXITCODE
