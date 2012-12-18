@@ -1,4 +1,4 @@
-setqt 5-x86
+setqt 5-x86-stable
 
 if (Test-Path Function:\TabExpansion) {
 
