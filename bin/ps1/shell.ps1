@@ -80,7 +80,7 @@ function e($path)
 detectTools
 
 $env:Path+=";t:\dev\personal\bin\ps1;t:\bin"
-$env:Path+=";c:\Program Files (x86)\Git\bin"
+$env:Path+=";C:\Program Files (x86)\Git\bin"
 ### Move to setqt.ps?
 # unreliable, works only within the meta repo and its submodules
 # $env:Path += ";t:\dev\qt-5\qtrepotools\bin"
@@ -88,10 +88,6 @@ $env:Path+=";c:\Program Files (x86)\Git\bin"
 $env:ARTISTIC_STYLE_OPTIONS="$USERPROFILE\astylerc"
 $env:QT_MESSAGE_PATTERN="%{file}(%{line}):%{message}"
 $env:GIT_TEMPLATE_DIR="t:\dev\devtools\git\template"
-
-setcompiler x86 msvc2010
-
-$env:CL = "/MP"
 
 # eeew... Get rid of symbian toolchain (might confuse mingw)
 $env:Path = $env:Path.replace("C:\Program Files (x86)\Common Files\Symbian\tools;", "")
@@ -134,3 +130,8 @@ Pop-Location
 #. 'T:\dev\posh-git\profile.example.ps1'
 
 . 'qttabexp.ps1'
+
+Set-Compiler msvc2010 x86
+setqt 5-x86-stable
+
+$env:CL = "/MP"

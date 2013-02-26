@@ -1,4 +1,3 @@
-setqt 5-x86-stable
 
 function detectInstalledLibraries($arch, [ref]$newIncludes, [ref]$newLibs, [ref]$newPaths)
 {
@@ -177,7 +176,6 @@ function SetCmd($version = "7.1", $arch = "x86")
             $globalEnvironmentHash["INCLUDE"] = $NewIncludes -join ";"
             $globalEnvironmentHash["LIB"] = $NewLibs -join ";"
             $globalEnvironmentHash["PATH"] = $NewPaths -join ";"
-
         }
 
 
@@ -209,9 +207,28 @@ function SetCmd($version = "7.1", $arch = "x86")
     }
 }
 
+function removeFromEnvironmentPath($value)
+{
+    $lowValue = $value.toLower()
+    $pathString = $env:Path
+    $pathLowered = $pathString.toLower()
+
+    $idx = $pathLowered.indexOf($lowValue)
+    if ($idx -ne -1) {
+        if ($idx -gt 0) {
+            $idx--
+        }
+        $pathString = $pathString.remove($idx, $value.Length + 1);
+    }
+    $env:Path = $pathString
+}
+
 function Set-Compiler($compilerSpec = "msvc2010", $arch = "x86")
 {
     $foundCompiler = $false
+    if ($compilerSpec -eq "mingw") {
+        $compilerSpec = "mingw-builds"
+    }
     switch ($compilerSpec) {
         "none" {
             $foundCompiler = SetCmd "none"
@@ -219,10 +236,28 @@ function Set-Compiler($compilerSpec = "msvc2010", $arch = "x86")
         "msvc2010" {
             $foundCompiler = SetCmd "7.1" $arch
         }
-       "mingw46" {
-            if (Test-Path "c:\mingw\bin\mingw32-gcc-4.6*.exe") {
-                $compilerFound = $true
-                $env:Path="c:\mingw\bin;$env:Path"
+        "mingw46" {
+            $candidatePath = "c:\mingw\bin"
+            if (Test-Path $candidatePath) {
+                $foundCompiler = SetCmd "none"
+                $foundCompiler = $true
+                $env:Path="$candidatePath;$env:Path"
+                $globalEnvironmentHash["Path"] = $candidatePath
+                $shPath = Resolve-Path ((Get-Command sh.exe).Definition + "\..")
+                $env:PATH = $env:PATH.replace("$shPath;", "")      #doing it twice in case its the first or last item in the Path
+                $env:PATH = $env:PATH.replace(";$shPath", "")      #doing it twice in case its the first or last item in the Path
+            }
+        }
+        "mingw-builds" {
+            $candidatePath = "t:\bin\mingw-builds-4.7.2\bin"
+            if (Test-Path $candidatePath) {
+                $foundCompiler = SetCmd "none"
+                $foundCompiler = $true
+                $env:Path="$candidatePath;$env:Path"
+                $globalEnvironmentHash["Path"] = $candidatePath
+                $shPath = Resolve-Path ((Get-Command sh.exe).Definition + "\..")
+                $env:PATH = $env:PATH.replace("$shPath;", "")      #doing it twice in case its the first or last item in the Path
+                $env:PATH = $env:PATH.replace(";$shPath", "")      #doing it twice in case its the first or last item in the Path
             }
         }
 
@@ -286,6 +321,8 @@ function updateEnvironmentPathValue($envName, $envNameAppendedPortion, $newValue
         Set-Item -path env:$envNameAppendedPortion -value "$newValue"
     }
 }
+
+
 
 
 function Set-QtPath() {
@@ -391,7 +428,8 @@ param([string]$qtdir = $null, [switch]$clean)
                 if ($setQTDIR) {
                     $Env:QTDIR = $newQTDIR
                 }
-                updateEnvironmentPathValue "PATH" "SETQT_PATH" "$newQTDIR\bin"
+                $gnuWinPath = Resolve-Path "$newQTDIR\..\gnuwin32\bin"
+                updateEnvironmentPathValue "PATH" "SETQT_PATH" "$newQTDIR\bin;$gnuWinPath"
                 Write-Host "Qt version is set to $newQTDIR"
             } else {
                 # ($qtdir -eq "none")
@@ -412,19 +450,15 @@ param([string]$qtdir = $null, [switch]$clean)
 }
 
 function Get-QtBasePath() {
-    if ($env:SETQT_PATH) {
-        (Resolve-Path "$env:SETQT_PATH\..").Path
-    } else {
-        # Try by looking in PATH environment
-        $res = Get-Command syncqt.bat
-        if ($res) {
-            if ($res.GetType() -eq [Object[]]) {
-                $res = res[0]
-            }
-            $res = $res.Definition
-            $qtdir = Resolve-Path "$res\..\.."
-            return $qtdir.Path
+    # Try by looking in PATH environment
+    $res = Get-Command syncqt.bat
+    if ($res) {
+        if ($res.GetType() -eq [Object[]]) {
+            $res = res[0]
         }
+        $res = $res.Definition
+        $qtdir = Resolve-Path "$res\..\.."
+        return $qtdir.Path
     }
 }
 
@@ -521,7 +555,8 @@ if (Test-Path Function:\TabExpansion) {
     }
 }
 
-
 Set-Alias qp "Generate-Pro-File"
 Set-Alias setqt "Set-QtPath"
 Set-Alias qcd "Set-QtLocation"
+
+
