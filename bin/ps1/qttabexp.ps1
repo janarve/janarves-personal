@@ -1,5 +1,3 @@
-setqt 5-x86
-
 function detectInstalledLibraries($arch, [ref]$newIncludes, [ref]$newLibs, [ref]$newPaths)
 {
     # "include", "lib", "PATH"
@@ -522,6 +520,7 @@ if (Test-Path Function:\TabExpansion) {
 }
 
 
+setqt 5-x86-dev
 Set-Alias qp "Generate-Pro-File"
 Set-Alias setqt "Set-QtPath"
 Set-Alias qcd "Set-QtLocation"
