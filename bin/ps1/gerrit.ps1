@@ -99,11 +99,20 @@ switch ($command)
     }
     "push" {
         if ($Args.count -eq 0) {
-            Write-Host "Syntax: gerrit push <branch>"
+            Write-Host "Syntax: gerrit push <branch> [remote]"
             Exit-PSSession
         } else {
+            $remote = $Args[1]
+            if (!$remote) {
+                $remote = (git config --get remote.gerrit.url)
+            }
+            if (!$remote) {
+                $remote = "origin"
+            } else {
+                $remote = "gerrit"
+            }
             $branch = $Args[0]
-            $cmd = "git push gerrit HEAD:refs/for/$branch"
+            $cmd = "git push $remote HEAD:refs/for/$branch"
             Write-Host $cmd
             Invoke-Expression $cmd
         }
