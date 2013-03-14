@@ -1,8 +1,8 @@
 function GitConfigSet($var, $value)
 {
-    $oldValue = `git config --global --get $var`
+    $oldValue = $(git config --global --get $var)
     if ($value -ne $oldValue) {
-        if ($oldValue) {
+        if ($oldValue -ne $null) {
             git config --global --unset-all $var
         }
         git config --global --add $var $value
@@ -79,7 +79,6 @@ if ((Read-Host "Install commit-msg hook (for gerrit)? (Y/n)") -ne "n") {
     }
 }
 
-
 if ((Read-Host "Configure global .gitconfig? (y/N)") -eq "y") {
     Write-Host "Configuring global .gitconfig"
 
@@ -97,7 +96,8 @@ if ((Read-Host "Configure global .gitconfig? (y/N)") -eq "y") {
     GitConfigSet "alias.di" "diff"
     GitConfigSet "alias.pr" "pull --rebase"
     GitConfigSet "alias.st" "status"
-    GitConfigSet "alias.pushgerrit" "push gerrit HEAD:refs/for/master"
+    GitConfigSet "alias.pushgerrits" "push gerrit HEAD:refs/for/stable"
+    GitConfigSet "alias.pushgerritd" "push gerrit HEAD:refs/for/dev"
     GitConfigSet "alias.pushgerrit48" "push gerrit HEAD:refs/for/4.8"
     GitConfigSet "alias.currentbranch" "rev-parse --abbrev-ref HEAD"
 

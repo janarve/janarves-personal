@@ -21,16 +21,16 @@ $expandTools = @{"7z.exe"    = @("HKCU:\Software\7-Zip", "Path");
                  "unzip.exe" = @()}
 
 
-$global:expandExtensions = @{".7z"      = @( @("7z.exe",    "x"));
-                             ".xz"      = @( @("7z.exe",    "x"));
-                             ".tar.gz"  = @( @("tar.exe",   "zxf", "zlf"));
-                             ".tar"     = @( @("7z.exe",    "x", "l"),
-                                             @("tar.exe",   "xf", "tf"));
-                             ".tar.bz2" = @( @("7z.exe",    "x", "l"),
-                                             @("tar.exe",   "jxf", "jlf"));
+$global:expandExtensions = @{".7z"      = @( ,@("7z.exe",    "x"));
+                             ".xz"      = @( ,@("7z.exe",    "x"));
+                             ".tar.gz"  = @( ,@("tar.exe",   "zxf", "zlf"));
+                             ".tar"     = @( ,@("7z.exe",    "x", "l")
+                                             ,@("tar.exe",   "xf", "tf"));
+                             ".tar.bz2" = @( ,@("7z.exe",    "x", "l")
+                                             ,@("tar.exe",   "jxf", "jlf"));
                              ".zip"     = @(
-                                             @("7z.exe",    "x"),
-                                             @("unzip.exe", $null)
+                                             ,@("7z.exe",    "x")
+                                             ,@("unzip.exe", $null)
                                     )
                     }
 
@@ -39,6 +39,7 @@ foreach ($key in $expandExtensions.keys) {
         $candidatePrograms = $expandExtensions[$key]
         foreach($cmdList in $candidatePrograms) {
             $cmd = $cmdList[0]
+            "cmd: $cmd"
 
             if ($command -eq "x") {
                 $opt = $cmdList[1]
