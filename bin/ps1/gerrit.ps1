@@ -98,23 +98,58 @@ switch ($command)
         }
     }
     "push" {
-        if ($Args.count -eq 0) {
-            Write-Host "Syntax: gerrit push <branch> [remote]"
+        $branch = $Args[0]
+        $remote = $Args[1]
+        $interactive = $false
+        if ($Args[0] -ne "-help") {
+            if (!$branch) {
+                $branch = (git config --get gpush.ref-to)
+                if (!$branch) {
+                    # apply heuristics
+                    $localBranches = @(git branch --no-color)
+                    $candidateCount = 0
+                    foreach ($b in $localBranches) {
+                        $b = $b -replace "[\s\*]+"
+                        $trackRef = (git config branch.$b.merge)
+                        if ($trackRef -ne $null) {
+                            if ($candidateCount -eq 1) {
+                                Write-Host "Could not detect branch. Possible branches:"
+                            }
+                            if ($candidateCount -ge 1) {
+                                Write-Host "    $branch"
+                            }
+                            $branch = $trackRef -replace "refs/heads/"
+                            ++$candidateCount
+                        }
+                    }
+                    if ($candidateCount -ge 2) {
+                        Write-Host "    $branch"
+                        $interactive = $true
+                    }
+                }
+            }
+            if (!$remote) {
+                $remote = (git config --get gpush.remote)
+                if (!$remote) {
+                    if ((git config --get remote.gerrit.url) -ne $null) {
+                        $remote = "gerrit"
+                    } elseif ((git config --get remote.origin.url) -ne $null) {
+                        $remote = "origin"
+                    }
+                }
+            }
+        }
+        if (!$branch -or !$remote) {
+            Write-Host "Syntax: gerrit push [branch] [remote]"
             Exit-PSSession
         } else {
-            $remote = $Args[1]
-            if (!$remote) {
-                $remote = (git config --get remote.gerrit.url)
-            }
-            if (!$remote) {
-                $remote = "origin"
-            } else {
-                $remote = "gerrit"
-            }
-            $branch = $Args[0]
             $cmd = "git push $remote HEAD:refs/for/$branch"
-            Write-Host $cmd
-            Invoke-Expression $cmd
+            if (!$interactive) {
+                Write-Host $cmd
+            }
+            if (!$interactive -or ((Read-host "$cmd (Y/n)?") -eq "Y")) {
+                Invoke-Expression $cmd
+            }
         }
     }
 }
