@@ -226,7 +226,7 @@ function Set-Compiler($compilerSpec = "msvc2010", $arch = "x86")
 {
     $foundCompiler = $false
     if ($compilerSpec -eq "mingw") {
-        $compilerSpec = "mingw-builds"
+        $compilerSpec = "mingw-builds-x32"
     }
     switch ($compilerSpec) {
         "none" {
@@ -247,8 +247,20 @@ function Set-Compiler($compilerSpec = "msvc2010", $arch = "x86")
                 $env:PATH = $env:PATH.replace(";$shPath", "")      #doing it twice in case its the first or last item in the Path
             }
         }
-        "mingw-builds" {
+        "mingw-builds-x64" {
             $candidatePath = "t:\bin\mingw-builds-4.7.2\bin"
+            if (Test-Path $candidatePath) {
+                $foundCompiler = SetCmd "none"
+                $foundCompiler = $true
+                $env:Path="$candidatePath;$env:Path"
+                $globalEnvironmentHash["Path"] = $candidatePath
+                $shPath = Resolve-Path ((Get-Command sh.exe).Definition + "\..")
+                $env:PATH = $env:PATH.replace("$shPath;", "")      #doing it twice in case its the first or last item in the Path
+                $env:PATH = $env:PATH.replace(";$shPath", "")      #doing it twice in case its the first or last item in the Path
+            }
+        }
+        "mingw-builds-x32" {
+            $candidatePath = "t:\bin\mingw-builds-x32-4.7.2\bin"
             if (Test-Path $candidatePath) {
                 $foundCompiler = SetCmd "none"
                 $foundCompiler = $true
@@ -427,8 +439,11 @@ param([string]$qtdir = $null, [switch]$clean)
                 if ($setQTDIR) {
                     $Env:QTDIR = $newQTDIR
                 }
-                $gnuWinPath = Resolve-Path "$newQTDIR\..\gnuwin32\bin"
-                updateEnvironmentPathValue "PATH" "SETQT_PATH" "$newQTDIR\bin;$gnuWinPath"
+                $gnuWinPath = ""
+                if (Test-Path "$newQTDIR\..\gnuwin32\bin") {
+                    $gnuWinPath = ";" + (Resolve-Path "$newQTDIR\..\gnuwin32\bin")
+                }
+                updateEnvironmentPathValue "PATH" "SETQT_PATH" "$newQTDIR\bin$gnuWinPath"
                 Write-Host "Qt version is set to $newQTDIR"
             } else {
                 # ($qtdir -eq "none")
@@ -440,10 +455,13 @@ param([string]$qtdir = $null, [switch]$clean)
     } else {
         if ($Env:QTDIR){
             Write-Host "$Env:QTDIR"
-        } elseif ($Env:SETQT_PATH) {
-            Write-Host ($Env:SETQT_PATH -replace "\\bin", "")
         } else {
-            Write-Host "QTDIR is not set"
+            $qtdir = Get-QtBasePath
+            if ($qtdir) {
+                Write-Host $qtdir
+            } else {
+                Write-Host "QTDIR is not set"
+            }
         }
     }
 }
@@ -459,6 +477,7 @@ function Get-QtBasePath() {
         $qtdir = Resolve-Path "$res\..\.."
         return $qtdir.Path
     }
+    return $null
 }
 
 function Generate-Pro-File()
