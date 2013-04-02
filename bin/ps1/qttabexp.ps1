@@ -217,17 +217,36 @@ function removeFromEnvironmentPath($value)
         if ($idx -gt 0) {
             $idx--
         }
-        $pathString = $pathString.remove($idx, $value.Length + 1);
+        $pathString = $pathString.remove($idx, $value.Length + 1)
     }
     $env:Path = $pathString
 }
 
-function Set-Compiler($compilerSpec = "msvc2010", $arch = "x86")
-{
+function Set-Compiler([string]$compilerSpec = "msvc2010", [string]$arch = "x86") {
+<#
+.SYNOPSIS
+A tool to switch between different compilers.
+List of supported compilers specs:
+    msvc2010
+    mingw46
+    mingw-builds-x64
+    mingw-builds-x32
+    none
+
+.EXAMPLE
+Set-Compiler msvc2010 x86
+Will switch to the 32 bit version of the MS
+
+.LINK
+sjarve@gmail.com
+#>
     $foundCompiler = $false
     if ($compilerSpec -eq "mingw") {
         $compilerSpec = "mingw-builds-x32"
+    } elseif ($compilerSpec -eq "msc16") {
+        $compilerSpec = "msvc2010"
     }
+
     switch ($compilerSpec) {
         "none" {
             $foundCompiler = SetCmd "none"
