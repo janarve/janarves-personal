@@ -125,6 +125,7 @@ Enable-GitColors
 
 Pop-Location
 
+$env:GIT_PUSH="spell"
 #Start-SshAgent -Quiet
 
 #. 'T:\dev\posh-git\profile.example.ps1'
@@ -132,6 +133,6 @@ Pop-Location
 . 'qttabexp.ps1'
 
 Set-Compiler msvc2010 x86
-setqt 5-x86-stable
+setqt .
 
 $env:CL = "/MP"
