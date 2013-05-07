@@ -487,14 +487,16 @@ param([string]$qtdir = $null, [switch]$clean)
 
 function Get-QtBasePath() {
     # Try by looking in PATH environment
-    $res = Get-Command syncqt.bat
-    if ($res) {
+    try {
+        $res = Get-Command -CommandType Application -Name syncqt.bat -ErrorAction "Stop"
         if ($res.GetType() -eq [Object[]]) {
             $res = res[0]
         }
         $res = $res.Definition
         $qtdir = Resolve-Path "$res\..\.."
         return $qtdir.Path
+    } catch {
+        return $null
     }
     return $null
 }
