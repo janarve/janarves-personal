@@ -243,6 +243,8 @@ sjarve@gmail.com
     $foundCompiler = $false
     if ($compilerSpec -eq "mingw") {
         $compilerSpec = "mingw-builds-x32"
+    } elseif ($compilerSpec -eq "msc15") {
+        $compilerSpec = "msvc2008"
     } elseif ($compilerSpec -eq "msc16") {
         $compilerSpec = "msvc2010"
     }
@@ -253,6 +255,9 @@ sjarve@gmail.com
         }
         "msvc2010" {
             $foundCompiler = SetCmd "7.1" $arch
+        }
+        "msvc2008" {
+            $foundCompiler = SetCmd "7.0" $arch
         }
         "mingw46" {
             $candidatePath = "c:\mingw\bin"
