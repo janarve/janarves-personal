@@ -490,10 +490,10 @@ param([string]$qtdir = $null, [switch]$clean)
     }
 }
 
-function Get-QtBasePath() {
-    # Try by looking in PATH environment
+function findInPath([string]$command)
+{
     try {
-        $res = Get-Command -CommandType Application -Name syncqt.bat -ErrorAction "Stop"
+        $res = Get-Command -CommandType Application -Name $command -ErrorAction "Stop"
         if ($res.GetType() -eq [Object[]]) {
             $res = res[0]
         }
@@ -504,6 +504,15 @@ function Get-QtBasePath() {
         return $null
     }
     return $null
+}
+
+function Get-QtBasePath() {
+    # Try by looking in PATH environment
+    $res = findInPath("syncqt.pl")      # From Qt ~5.1
+    if ($res -eq $null) {
+        $res = findInPath("syncqt.bat")
+    }
+    return $res
 }
 
 function Generate-Pro-File()
