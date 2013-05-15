@@ -85,7 +85,7 @@ $env:Path+=";C:\Program Files (x86)\Git\bin"
 # unreliable, works only within the meta repo and its submodules
 # $env:Path += ";t:\dev\qt-5\qtrepotools\bin"
 
-$env:ARTISTIC_STYLE_OPTIONS="$USERPROFILE\astylerc"
+$env:ARTISTIC_STYLE_OPTIONS="$env:USERPROFILE\astylerc"
 $env:QT_MESSAGE_PATTERN="%{file}(%{line}):%{message}"
 $env:GIT_TEMPLATE_DIR="t:\dev\devtools\git\template"
 
