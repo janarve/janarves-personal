@@ -303,12 +303,32 @@ sjarve@gmail.com
     if ($foundCompiler) {
         if ($version -eq "none") {
             Write-Host "Unregistering compiler"
+            updateWindowTitle "none"
         } else {
             Write-Host "MS SDK set to $compilerSpec ($arch)"
+            updateWindowTitle $compilerSpec
         }
     } else {
         Write-Host "MS SDK $compilerSpec ($arch) was not found"
     }
+}
+
+function updateWindowTitle([string]$cs = $null, [string]$qts = $null)
+{
+	if ($Host.UI.RawUI.WindowTitle -match "PS:([^\s]+)? (\d+)?-([^\s]+)?") {
+		if ($cs -eq $null -or $cs -eq "") {
+			$cs = $matches[1]
+		}
+		if ($qts -eq $null -or $qts -eq "") {
+			$qtVersion = $matches[2]
+			$qtBranch = $matches[3]
+		}
+	}
+	if ($qts -match "qt-(\d+)-([dsr])") {
+		$qtVersion = $matches[1]
+		$qtBranch = $matches[2]
+	}
+	$Host.UI.RawUI.WindowTitle = "PS:$cs $qtVersion-$qtBranch"
 }
 
 function resolveQtPath($loc)
@@ -488,6 +508,9 @@ param([string]$qtdir = $null, [switch]$clean)
             }
         }
     }
+
+    $qtdir = Get-QtBasePath
+    updateWindowTitle -qts $qtdir
 }
 
 function findInPath([string]$command)
