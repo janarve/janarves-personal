@@ -11,7 +11,6 @@ This script will do the following procedure:
 
 .EXAMPLE
 .\rebuildqt.ps1
-Outputs the current compiler
 
 .NOTES
 Experimental
@@ -21,28 +20,18 @@ http://sjarve@gmail.com
 
 #>
 
-param([string]$config, [switch]$pull, [switch]$nobuild)
-
-$do_build = !$nobuild
+param([switch]$pull)
 
 $QTDIR = Get-QtBasePath
 Push-Location $QTDIR
 
 Set-Location ..
-qtrepotools\bin\qt5_tool -c
-if ($pull) {
-    qtrepotools\bin\qt5_tool -p
-}
 
-if (!$config) {
-    c
-    if ($do_build) {
-        jom
-    }
-} else {
-    c "-$config"
-    if ($do_build) {
-        jom $config
-    }
+.\qtrepotools\bin\qt5_tool -c --Branch stable
+if ($pull) {
+    .\qtrepotools\bin\qt5_tool -p --Branch stable
 }
+$start = Get-Date
+.\qtrepotools\bin\qt5_tool -b --Branch stable
+(Get-Date) - $start
 Pop-Location
