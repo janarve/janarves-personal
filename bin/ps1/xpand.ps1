@@ -73,14 +73,16 @@ foreach ($key in $expandExtensions.keys) {
             } elseif ($arr.count -eq 0) {
                 # Look in $env:Path
                 $fullPath = whereIs($cmd)
+                $args = @()
                 if ($fullPath) {
                     if ($opt) {
-                        $args = "$opt $archive"
+                        $args += $opt
+                        $args += $archive
                     } else {
-                        $args = "$archive"
+                        $args += $archive
                     }
                     Write-Host "$fullPath $args"
-                    & $fullPath "$args"
+                    Start-Process $fullPath -ArgumentList $args
                     return
                 }
             }
