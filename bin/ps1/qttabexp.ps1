@@ -163,7 +163,13 @@ function SetCmd($version = "7.1", $arch = "x86")
             $VsInstallPath = [System.IO.Path]::GetDirectoryName($VsKey.InstallationFolder)
             $VsToolsDir = $VsInstallPath
             $BatchFile = [System.IO.Path]::Combine($VsToolsDir, "SetEnv.Cmd")
-            Get-Batchfile "$BatchFile" "/$arch" ([ref]$globalEnvironmentHash)
+            $SetEnv_arch = $null
+            if ($arch -eq "amd64") {
+                $SetEnv_arch = "x64"
+            } else {
+                $SetEnv_arch = "x86"
+            }
+            Get-Batchfile "$BatchFile" "/$SetEnv_arch" ([ref]$globalEnvironmentHash)
             [System.Console]::Title = "Visual Studio " + $version + " Windows Powershell"
 
             $NewIncludes = $globalEnvironmentHash["INCLUDE"].TrimEnd(";") -split ";"
