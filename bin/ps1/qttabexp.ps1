@@ -541,6 +541,22 @@ function Get-QtBasePath() {
     if ($res -eq $null) {
         $res = findInPath("syncqt.bat")
     }
+    if ($res -eq $null) {
+        $paths = $env:PATH -replace ";;", ";" -split ";"
+        foreach ($p in $paths) {
+            $candidate = "$p\..\.."
+            if (Test-Path $candidate) {
+                $candidate = Resolve-Path "$p\..\.."
+                if (Test-Path "$candidate\init-repository") {
+                    $candidate = "$candidate\qtbase"
+                    if (Test-Path $candidate) {
+                        $res = $candidate
+                        break
+                    }
+                }
+            }
+        }
+    }
     return $res
 }
 
