@@ -4,21 +4,23 @@ function detectInstalledLibraries($arch, [ref]$newIncludes, [ref]$newLibs, [ref]
     $detectionVariables = @{
         "x86" = @(
             @("${env:DXSDK_DIR}Include", "${env:DXSDK_DIR}Lib\x86", "${env:DXSDK_DIR}Utilities\Bin\x86"),
-            @("T:\3rdparty\icu*\icu\lib\..\include", "T:\3rdparty\icu*\icu\lib", "T:\3rdparty\icu*\icu\bin"),
-            #@("t:\3rdparty\openssl-1.0.0a\include", "t:\3rdparty\openssl-1.0.0a\out_win32", "t:\3rdparty\openssl-1.0.0a\out_win32"),
-            @("t:\3rdparty\expat\Source\lib", "t:\3rdparty\expat\bin", "t:\3rdparty\expat\bin"),
-            @("t:\dev\devtools\database\include\db2", "t:\dev\devtools\database\lib\msvc", "t:\dev\devtools\database\bin"),
-            @("t:\dev\devtools\database\include\fbird", "t:\dev\devtools\database\lib\msvc", "t:\dev\devtools\database\bin"),
-            @("t:\dev\devtools\database\include\mysql", "t:\dev\devtools\database\lib\msvc", "t:\dev\devtools\database\bin"),
-            @("t:\dev\devtools\database\include\oci", "t:\dev\devtools\database\lib\msvc", "t:\dev\devtools\database\bin"),
-            @("t:\dev\devtools\database\include\psql", "t:\dev\devtools\database\lib\msvc", "t:\dev\devtools\database\bin"),
-            @("t:\dev\devtools\database\include\tds", "t:\dev\devtools\database\lib\msvc", "t:\dev\devtools\database\bin")
+            @("Q:\3rdparty\icu*\icu\lib\..\include", "Q:\3rdparty\icu*\icu\lib", "Q:\3rdparty\icu*\icu\bin"),
+            @("${env:THIRDPARTYPATH}\openssl-1.0.1e\include", "${env:THIRDPARTYPATH}\openssl-1.0.1e\lib", "${env:THIRDPARTYPATH}\openssl-1.0.1e\bin"),
+            @("Q:\3rdparty\expat\Source\lib", "Q:\3rdparty\expat\bin", "Q:\3rdparty\expat\bin"),
+            @("Q:\dev\devtools\database\include\db2", "Q:\dev\devtools\database\lib\msvc", "Q:\dev\devtools\database\bin"),
+            @("Q:\dev\devtools\database\include\fbird", "Q:\dev\devtools\database\lib\msvc", "Q:\dev\devtools\database\bin"),
+            @("Q:\dev\devtools\database\include\mysql", "Q:\dev\devtools\database\lib\msvc", "Q:\dev\devtools\database\bin"),
+            @("Q:\dev\devtools\database\include\oci", "Q:\dev\devtools\database\lib\msvc", "Q:\dev\devtools\database\bin"),
+            @("Q:\dev\devtools\database\include\psql", "Q:\dev\devtools\database\lib\msvc", "Q:\dev\devtools\database\bin"),
+            @("Q:\dev\devtools\database\include\tds", "Q:\dev\devtools\database\lib\msvc", "Q:\dev\devtools\database\bin")
         );
         "amd64" = @(
             @("${env:DXSDK_DIR}Include", "${env:DXSDK_DIR}Lib\x64", @("${env:DXSDK_DIR}Utilities\Bin\x86",
                                                                       "${env:DXSDK_DIR}Utilities\Bin\x64")),
-            @("T:\3rdparty\icu*\icu\lib64\..\include", "T:\3rdparty\icu*\icu\lib64", "T:\3rdparty\icu*\icu\bin64"),
-            @("t:\3rdparty\openssl64\include", "t:\3rdparty\openssl64\lib", "t:\3rdparty\openssl64\bin")
+            @("Q:\3rdparty\icu*\icu\lib64\..\include", "Q:\3rdparty\icu*\icu\lib64", "Q:\3rdparty\icu*\icu\bin64"),
+            # @("Q:\3rdparty\openssl64\include", "Q:\3rdparty\openssl64\lib", "Q:\3rdparty\openssl64\bin"),
+            @("${env:THIRDPARTYPATH}\openssl-1.0.1e\include", "${env:THIRDPARTYPATH}\openssl-1.0.1e\lib", "${env:THIRDPARTYPATH}\openssl-1.0.1e\bin")
+            
         )
     }
 
@@ -108,7 +110,6 @@ function Get-Batchfile($file, $SetCmdArgs, [ref]$environmentHash) {
             $preHash[$n] = $matches[2]
         }
     }
-
     $postHash = @{}
     Get-Content $tempFilePost | Foreach-Object {
         if ($_ -match "^(.*?)=(.*)$") {
@@ -143,12 +144,111 @@ function Get-Batchfile($file, $SetCmdArgs, [ref]$environmentHash) {
 # Used to restore the environment variables back to its original content
 $globalEnvironmentHash = @{}
 
+$environmentModifications = @{}
+
+function getEnvironmentCategory([string]$category)
+{
+	if ($environmentModifications[$category] -eq $null) {
+		$environmentModifications[$category] = @{}
+	}
+	return $environmentModifications[$category]
+}
+
+function setEnvironment([string]$category, [string]$name, [string]$value)
+{
+	$envir = getEnvironmentCategory($category)
+	$envir[$name] = $value
+}
+
+function appendEnvironment([string]$category, [string]$name, [string]$value, [string]$separator = ";")
+{
+	$envir = getEnvironmentCategory($category)
+	$val = $envir[$name]
+	if ($val -ne $null) {
+		if ($val.lastIndexOf($separator) -ne -1) {
+			$val += $separator
+		}
+	}
+	$val += $value
+	$envir[$name] = $val	
+}
+
+function appendEnvironmentMap([string]$category, $keyvalues, [string]$separator = ";")
+{
+	$envir = getEnvironmentCategory($category)
+	$newVal = $envir[$name] + $separator + $value
+	$envir[$name] = $newVal	
+}
+
+function applyEnvironment([string]$category, [string]$separator = ";")
+{
+	$envir = getEnvironmentCategory($category)
+	foreach ($envName in $envir.keys) {
+		$valueToAdd = $envir[$envName]
+		$currentVal = $null
+		if (Test-Path "env:$envName") {
+			$currentVal = (Get-Item -path "env:$envName").Value
+		}
+		if ($currentVal -eq $null) {
+			Set-Item -path "env:$envName" -value "$valueToAdd"
+		} else {
+			Set-Item -path "env:$envName" -value "$currentVal$separator$valueToAdd"
+		}
+	}
+}
+function restoreEnvironment([string]$category)
+{
+	$envir = getEnvironmentCategory($category)
+	
+	foreach ($envName in $envir.keys) {
+		$addedVal = $envir[$envName]
+		$currentVal = (Get-Item -path "env:$envName").Value
+		$restoredVal = $currentVal.replace($addedVal, "")
+		Set-Item -path "env:$envName" -value "$restoredVal"
+	}
+	$envir.clear()
+}
+
 function SetCmd($version = "7.1", $arch = "x86")
 {
+	if ($version -eq "none") {
+        # Restore back to original content
+        foreach ($envName in $globalEnvironmentHash.keys) {
+            $oldVal = $globalEnvironmentHash[$envName]
+            $currentVal = (Get-Item -path "env:$envName").Value
+            $originalVal = $currentVal.replace($oldVal, "")
+            Set-Item -path "env:$envName" -value "$originalVal"
+        }
+        $globalEnvironmentHash.clear()	
+		return
+	}
     $environmentHash = @{}
-
-    $key = "HKLM:\SOFTWARE\Microsoft\Microsoft SDKs\Windows\v$version\WinSDKTools"
-    if ((Test-Path $key) -or ($version -eq "none")) {
+    $BatchFile = $null
+    $SetEnv_arch = $null
+    if ($version -eq "2013expr") {
+        $BatchFile = "C:\Program Files (x86)\Microsoft Visual Studio 12.0\VC\vcvarsall.bat"
+# "C:\Program Files (x86)\Microsoft Visual Studio 12.0\Common7\Tools\VsDevCmd.bat"
+        if ($arch -eq "amd64") {
+            $SetEnv_arch = "x86_amd64"
+        } else {
+            $SetEnv_arch = "x86"
+        }        
+    } else {
+        $key = "HKLM:\SOFTWARE\Microsoft\Microsoft SDKs\Windows\v$version\WinSDKTools"
+        if (Test-Path $key) {
+			$VsKey = get-ItemProperty $key
+			$VsInstallPath = [System.IO.Path]::GetDirectoryName($VsKey.InstallationFolder)
+			$VsToolsDir = $VsInstallPath
+			$BatchFile = [System.IO.Path]::Combine($VsToolsDir, "SetEnv.Cmd")
+			if ($arch -eq "amd64") {
+				$SetEnv_arch = "/x64"
+			} else {
+				$SetEnv_arch = "/x86"
+			}        
+        }
+    }
+	
+    if ($BatchFile) {
         # Restore back to original content
         foreach ($envName in $globalEnvironmentHash.keys) {
             $oldVal = $globalEnvironmentHash[$envName]
@@ -158,54 +258,98 @@ function SetCmd($version = "7.1", $arch = "x86")
         }
         $globalEnvironmentHash.clear()
 
-        if ($version -ne "none") {
-            $VsKey = get-ItemProperty $key
-            $VsInstallPath = [System.IO.Path]::GetDirectoryName($VsKey.InstallationFolder)
-            $VsToolsDir = $VsInstallPath
-            $BatchFile = [System.IO.Path]::Combine($VsToolsDir, "SetEnv.Cmd")
-            $SetEnv_arch = $null
-            if ($arch -eq "amd64") {
-                $SetEnv_arch = "x64"
-            } else {
-                $SetEnv_arch = "x86"
-            }
-            Get-Batchfile "$BatchFile" "/$SetEnv_arch" ([ref]$globalEnvironmentHash)
-            [System.Console]::Title = "Visual Studio " + $version + " Windows Powershell"
+        Get-Batchfile "$BatchFile" "$SetEnv_arch" ([ref]$globalEnvironmentHash)
+        [System.Console]::Title = "Visual Studio " + $version + " Windows Powershell"
 
-            $NewIncludes = $globalEnvironmentHash["INCLUDE"].TrimEnd(";") -split ";"
-            $NewLibs = $globalEnvironmentHash["LIB"].TrimEnd(";") -split ";"
-            $NewPaths = $globalEnvironmentHash["PATH"].TrimEnd(";") -split ";"
+        $NewIncludes = $globalEnvironmentHash["INCLUDE"].TrimEnd(";") -split ";"
+        $NewLibs = $globalEnvironmentHash["LIB"].TrimEnd(";") -split ";"
+        $NewPaths = $globalEnvironmentHash["PATH"].TrimEnd(";") -split ";"
 
-            detectInstalledLibraries $arch ([ref]$NewIncludes) ([ref]$NewLibs) ([ref]$NewPaths)
+        detectInstalledLibraries $arch ([ref]$NewIncludes) ([ref]$NewLibs) ([ref]$NewPaths)
 
-            $globalEnvironmentHash["INCLUDE"] = $NewIncludes -join ";"
-            $globalEnvironmentHash["LIB"] = $NewLibs -join ";"
-            $globalEnvironmentHash["PATH"] = $NewPaths -join ";"
-        }
-
+        $globalEnvironmentHash["INCLUDE"] = $NewIncludes -join ";"
+        $globalEnvironmentHash["LIB"] = $NewLibs -join ";"
+        $globalEnvironmentHash["PATH"] = $NewPaths -join ";"
 
 #    $globalEnvironmentHash.Remove("ORIGINALPATH")
-        if ($version -ne "none") {
-            # update
-            foreach ($key in $globalEnvironmentHash.keys) {
-                $newVal = $globalEnvironmentHash[$key]
-                if (Test-Path "env:$key") {
-                    $currentVal = (Get-Item -path "env:$key").Value
-                    #Write-Host "current: $key = $currentVal"
-                    #Write-Host "new:     $key = $newVal"
-                    if (!$newVal.startsWith(";")) {
-                        #prepend
-                        $currentVal = "$newVal;$currentVal"
-                    } else {
-                        #append
-                        $currentVal += "$newVal"
-                    }
-                } else {
-                    $currentVal = $newVal
-                }
-                Set-Item -path "env:$key" $currentVal
-            }
+		# update
+		foreach ($key in $globalEnvironmentHash.keys) {
+			$newVal = $globalEnvironmentHash[$key]
+			if (Test-Path "env:$key") {
+				$currentVal = (Get-Item -path "env:$key").Value
+				#Write-Host "current: $key = $currentVal"
+				#Write-Host "new:     $key = $newVal"
+				if (!$newVal.startsWith(";")) {
+					#prepend
+					$currentVal = "$newVal;$currentVal"
+				} else {
+					#append
+					$currentVal += "$newVal"
+				}
+			} else {
+				$currentVal = $newVal
+			}
+			Set-Item -path "env:$key" $currentVal
+		}
+        return $true
+    } else {
+        return $false
+    }
+}
+
+function SetCmdEx($version = "7.1", $arch = "x86")
+{
+	if ($version -eq "none") {
+        # Restore back to original content
+        restoreEnvironment "compiler"
+		return
+	}
+    $environmentHash = @{}
+    $BatchFile = $null
+    $SetEnv_arch = $null
+    if ($version -eq "2013expr") {
+        $BatchFile = "C:\Program Files (x86)\Microsoft Visual Studio 12.0\VC\vcvarsall.bat"
+# "C:\Program Files (x86)\Microsoft Visual Studio 12.0\Common7\Tools\VsDevCmd.bat"
+        if ($arch -eq "amd64") {
+            $SetEnv_arch = "x86_amd64"
+        } else {
+            $SetEnv_arch = "x86"
+        }        
+    } else {
+        $key = "HKLM:\SOFTWARE\Microsoft\Microsoft SDKs\Windows\v$version\WinSDKTools"
+        if (Test-Path $key) {
+			$VsKey = get-ItemProperty $key
+			$VsInstallPath = [System.IO.Path]::GetDirectoryName($VsKey.InstallationFolder)
+			$VsToolsDir = $VsInstallPath
+			$BatchFile = [System.IO.Path]::Combine($VsToolsDir, "SetEnv.Cmd")
+			if ($arch -eq "amd64") {
+				$SetEnv_arch = "/x64"
+			} else {
+				$SetEnv_arch = "/x86"
+			}        
         }
+    }
+	
+    if ($BatchFile) {
+        # Restore back to original content
+		restoreEnvironment "compiler"
+		$envir = getEnvironmentCategory "compiler"
+        Get-Batchfile "$BatchFile" "$SetEnv_arch" ([ref]$envir)
+        [System.Console]::Title = "Visual Studio " + $version + " Windows Powershell"
+
+        $NewIncludes = $envir["INCLUDE"].TrimEnd(";") -split ";"
+        $NewLibs = $envir["LIB"].TrimEnd(";") -split ";"
+        $NewPaths = $envir["PATH"].TrimEnd(";") -split ";"
+
+        detectInstalledLibraries $arch ([ref]$NewIncludes) ([ref]$NewLibs) ([ref]$NewPaths)
+
+        $envir["INCLUDE"] = $NewIncludes -join ";"
+        $envir["LIB"] = $NewLibs -join ";"
+        $envir["PATH"] = $NewPaths -join ";"
+
+#    $globalEnvironmentHash.Remove("ORIGINALPATH")
+		# update
+		applyEnvironment "compiler"
         return $true
     } else {
         return $false
@@ -233,7 +377,9 @@ function Set-Compiler([string]$compilerSpec = "msvc2010", [string]$arch = "x86")
 .SYNOPSIS
 A tool to switch between different compilers.
 List of supported compilers specs:
-    msvc2010
+    msvc2008     (msc15)
+    msvc2010     (msc16)
+    msvc2013expr (msc18)
     mingw46
     mingw-builds-x64
     mingw-builds-x32
@@ -247,28 +393,43 @@ Will switch to the 32 bit version of the MS
 sjarve@gmail.com
 #>
     $foundCompiler = $false
+    if ($arch -eq "x64") {
+        $arch = "amd64"
+    }
     if ($compilerSpec -eq "mingw") {
         $compilerSpec = "mingw-builds-x32"
     } elseif ($compilerSpec -eq "msc15") {
         $compilerSpec = "msvc2008"
     } elseif ($compilerSpec -eq "msc16") {
         $compilerSpec = "msvc2010"
+    } elseif ($compilerSpec -eq "msc18") {
+        $compilerSpec = "msvc2013expr"
+    }
+    if ($arch -eq "x86") {
+        $env:THIRDPARTYPATH="Q:\3rdparty\x86"
+    } elseif ($arch -eq "amd64") {
+        $env:THIRDPARTYPATH="Q:\3rdparty\x64"
+    } elseif ($compilerSpec -eq "none") {
+        $env:THIRDPARTYPATH=$null
     }
 
     switch ($compilerSpec) {
         "none" {
-            $foundCompiler = SetCmd "none"
+            $foundCompiler = SetCmdEx "none"
+        }
+        "msvc2013expr" {
+            $foundCompiler = SetCmdEx "2013expr" $arch
         }
         "msvc2010" {
-            $foundCompiler = SetCmd "7.1" $arch
+            $foundCompiler = SetCmdEx "7.1" $arch
         }
         "msvc2008" {
-            $foundCompiler = SetCmd "7.0" $arch
+            $foundCompiler = SetCmdEx "7.0" $arch
         }
         "mingw46" {
             $candidatePath = "c:\mingw\bin"
             if (Test-Path $candidatePath) {
-                $foundCompiler = SetCmd "none"
+				$foundCompiler = SetCmd "none"
                 $foundCompiler = $true
                 $env:Path="$candidatePath;$env:Path"
                 $globalEnvironmentHash["Path"] = $candidatePath
@@ -277,8 +438,23 @@ sjarve@gmail.com
                 $env:PATH = $env:PATH.replace(";$shPath", "")      #doing it twice in case its the first or last item in the Path
             }
         }
+        "mingw48" {
+            $candidatePath = "q:\bin\mingw-builds-x32-4.8.1\bin"
+            if (Test-Path $candidatePath) {
+				$foundCompiler = SetCmd "none"
+                restoreEnvironment("compiler")
+                $foundCompiler = $true
+				appendEnvironment "compiler" "Path" $candidatePath
+				# might be needed
+                #$shPath = Resolve-Path ((Get-Command sh.exe).Definition + "\..")
+                #$env:PATH = $env:PATH.replace("$shPath;", "")      #doing it twice in case its the first or last item in the Path
+                #$env:PATH = $env:PATH.replace(";$shPath", "")      #doing it twice in case its the first or last item in the Path
+				applyEnvironment "compiler"
+            }
+        }
+		
         "mingw-builds-x64" {
-            $candidatePath = "t:\bin\mingw-builds-4.7.2\bin"
+            $candidatePath = "Q:\bin\mingw-builds-4.7.2\bin"
             if (Test-Path $candidatePath) {
                 $foundCompiler = SetCmd "none"
                 $foundCompiler = $true
@@ -290,7 +466,7 @@ sjarve@gmail.com
             }
         }
         "mingw-builds-x32" {
-            $candidatePath = "t:\bin\mingw-builds-x32-4.7.2\bin"
+            $candidatePath = "Q:\bin\mingw-builds-x32-4.7.2\bin"
             if (Test-Path $candidatePath) {
                 $foundCompiler = SetCmd "none"
                 $foundCompiler = $true
@@ -311,30 +487,30 @@ sjarve@gmail.com
             Write-Host "Unregistering compiler"
             updateWindowTitle "none"
         } else {
-            Write-Host "MS SDK set to $compilerSpec ($arch)"
+            Write-Host "SDK set to $compilerSpec ($arch)"
             updateWindowTitle $compilerSpec
         }
     } else {
-        Write-Host "MS SDK $compilerSpec ($arch) was not found"
+        Write-Host "SDK $compilerSpec ($arch) was not found"
     }
 }
 
 function updateWindowTitle([string]$cs = $null, [string]$qts = $null)
 {
-	if ($Host.UI.RawUI.WindowTitle -match "PS:([^\s]+)? (\d+)?-([^\s]+)?") {
-		if ($cs -eq $null -or $cs -eq "") {
-			$cs = $matches[1]
-		}
-		if ($qts -eq $null -or $qts -eq "") {
-			$qtVersion = $matches[2]
-			$qtBranch = $matches[3]
-		}
-	}
-	if ($qts -match "qt-(\d+)-([dsr])") {
-		$qtVersion = $matches[1]
-		$qtBranch = $matches[2]
-	}
-	$Host.UI.RawUI.WindowTitle = "PS:$cs $qtVersion-$qtBranch"
+    if ($Host.UI.RawUI.WindowTitle -match "PS:([^\s]+)? (\d+)?-([^\s]+)?") {
+        if ($cs -eq $null -or $cs -eq "") {
+            $cs = $matches[1]
+        }
+        if ($qts -eq $null -or $qts -eq "") {
+            $qtVersion = $matches[2]
+            $qtBranch = $matches[3]
+        }
+    }
+    if ($qts -match "qt-(\d+)-([dsr])") {
+        $qtVersion = $matches[1]
+        $qtBranch = $matches[2]
+    }
+    $Host.UI.RawUI.WindowTitle = "PS:$cs $qtVersion-$qtBranch"
 }
 
 function resolveQtPath($loc)
@@ -449,13 +625,13 @@ param([string]$qtdir = $null, [switch]$clean)
         [Environment]::SetEnvironmentVariable("QTREPOS", "", "User")
         $Env:QTREPOS = ""
     } elseif ($qtdir) {
-        if (!($qtdir -eq "none")) {
+        if ($qtdir -ne "none") {
             $newQTDIR = resolveQtPath($qtdir)
             if (!$newQTDIR) {
                 if (!$Env:QTREPOS) {
-                    $qtRepos = Read-host "Please enter the complete path to your Qt development area (T:\dev)"
+                    $qtRepos = Read-host "Please enter the complete path to your Qt development area (Q:\dev)"
                     if (!$qtRepos) {
-                        $qtRepos = "T:\dev"
+                        $qtRepos = "Q:\dev"
                     }
                     $Env:QTREPOS = $qtRepos
                     $storeQtdep = Read-host "Do you want to set the location of your Qt depot as a permanent setting?(y/n)"
