@@ -144,14 +144,15 @@ function Get-Batchfile($file, $SetCmdArgs, [ref]$environmentHash) {
 # Used to restore the environment variables back to its original content
 $globalEnvironmentHash = @{}
 
-$environmentModifications = @{}
-
 function getEnvironmentCategory([string]$category)
 {
-	if ($environmentModifications[$category] -eq $null) {
-		$environmentModifications[$category] = @{}
+	if ($global:environmentModifications -eq $null) {
+		$global:environmentModifications = @{}
 	}
-	return $environmentModifications[$category]
+	if ($global:environmentModifications[$category] -eq $null) {
+		$global:environmentModifications[$category] = @{}
+	}
+	return $global:environmentModifications[$category]
 }
 
 function setEnvironment([string]$category, [string]$name, [string]$value)
@@ -304,7 +305,6 @@ function SetCmdEx($version = "7.1", $arch = "x86")
         restoreEnvironment "compiler"
 		return
 	}
-    $environmentHash = @{}
     $BatchFile = $null
     $SetEnv_arch = $null
     if ($version -eq "2013expr") {
