@@ -79,22 +79,22 @@ function e($path)
 #. utils.ps1
 detectTools
 
-$env:Path+=";t:\dev\personal\bin\ps1;t:\bin"
+$env:Path+=";Q:\dev\personal\bin\ps1;Q:\bin"
 $env:Path+=";C:\Program Files (x86)\Git\bin"
 ### Move to setqt.ps?
 # unreliable, works only within the meta repo and its submodules
-# $env:Path += ";t:\dev\qt-5\qtrepotools\bin"
+# $env:Path += ";Q:\dev\qt-5\qtrepotools\bin"
 
 $env:ARTISTIC_STYLE_OPTIONS="$env:USERPROFILE\astylerc"
 $env:QT_MESSAGE_PATTERN="%{file}(%{line}):%{message}"
-$env:GIT_TEMPLATE_DIR="t:\dev\devtools\git\template"
+$env:GIT_TEMPLATE_DIR="Q:\dev\devtools\git\template"
 
 # eeew... Get rid of symbian toolchain (might confuse mingw)
 $env:Path = $env:Path.replace("C:\Program Files (x86)\Common Files\Symbian\tools;", "")
 
 ####################################################################
 # Load posh-git example profile
-Push-Location 'T:\dev\posh-git'
+Push-Location 'Q:\dev\posh-git'
 
 # Load posh-git module from current directory
 Import-Module .\posh-git
@@ -128,11 +128,11 @@ Pop-Location
 $env:GIT_PUSH="spell"
 #Start-SshAgent -Quiet
 
-#. 'T:\dev\posh-git\profile.example.ps1'
+#. 'Q:\dev\posh-git\profile.example.ps1'
 
 . 'qttabexp.ps1'
 
-Set-Compiler msvc2010 x86
+Set-Compiler msvc2013expr
 setqt .
 
-$env:CL = "/MP"
+$env:CL += " /MP"

@@ -86,7 +86,7 @@ if ((Read-Host "Configure global .gitconfig? (y/N)") -eq "y") {
         GitConfigSet "url.qtsoftware:.insteadOf" "git@scm.dev.troll.no:"
     }
 
-    GitConfigSet "mailmap.file" "t:\dev\devtools\aliases\mailmap"
+    GitConfigSet "mailmap.file" "q:\dev\devtools\aliases\mailmap"
     GitConfigSet "alias.loginternal" "log --pretty=tformat:'commit %H%nAuthor: %an <%ae>%n (int): %aN <%aE>%nDate: %ad%n%n%s%n%n%b'"
     GitConfigSet "core.autocrlf" "true"
     GitConfigSet "alias.br" "branch"

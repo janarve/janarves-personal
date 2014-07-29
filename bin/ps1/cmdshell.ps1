@@ -5,13 +5,12 @@
 $env:Path+=";c:\Program Files (x86)\Git\Bin"
 
 
-$env:Path+=";t:\dev\qt-stable\bin;t:\dev\personal\bin\ps1;t:\dev\devtools\shell"
+$env:Path+=";Q:\dev\qt-stable\bin;Q:\dev\personal\bin\ps1;Q:\dev\devtools\shell"
 $env:EDITOR=$env:NOTEPADPP
 
-$env:GIT_EDITOR="t:/dev/personal/bin/npp.bat"
-$env:GIT_TEMPLATE_DIR="t:\dev\devtools\git\template"
-
-$env:P4_TREE="t:\dev"
+$env:GIT_EDITOR="q:/dev/personal/bin/npp.bat"
+$env:GIT_TEMPLATE_DIR="q:\dev\devtools\git\template"
+$env:P4_TREE="q:\dev"
 
 Function LongListing {
     Get-ChildItem

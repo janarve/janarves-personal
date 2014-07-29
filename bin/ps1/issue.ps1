@@ -5,7 +5,7 @@ function GetGitCurrentBranch()
     git rev-parse --abbrev-ref HEAD
 }
 
-$issueDirs = @("$env:QTREPOS\issues", "t:\tasks")
+$issueDirs = @("$env:QTREPOS\issues", "q:\tasks")
 $qtdir = Get-QtBasePath
 
 if (!$qtdir) {
