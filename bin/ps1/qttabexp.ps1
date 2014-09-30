@@ -6,6 +6,7 @@ function detectInstalledLibraries($arch, [ref]$newIncludes, [ref]$newLibs, [ref]
             @("${env:DXSDK_DIR}Include", "${env:DXSDK_DIR}Lib\x86", "${env:DXSDK_DIR}Utilities\Bin\x86"),
             @("Q:\3rdparty\icu*\icu\lib\..\include", "Q:\3rdparty\icu*\icu\lib", "Q:\3rdparty\icu*\icu\bin"),
             @("${env:THIRDPARTYPATH}\openssl-1.0.1e\include", "${env:THIRDPARTYPATH}\openssl-1.0.1e\lib", "${env:THIRDPARTYPATH}\openssl-1.0.1e\bin"),
+            @("${env:THIRDPARTYPATH}\openssl-1.0.1i\include", "${env:THIRDPARTYPATH}\openssl-1.0.1i\lib", "${env:THIRDPARTYPATH}\openssl-1.0.1i\bin"),
             @("Q:\3rdparty\expat\Source\lib", "Q:\3rdparty\expat\bin", "Q:\3rdparty\expat\bin"),
             @("Q:\dev\devtools\database\include\db2", "Q:\dev\devtools\database\lib\msvc", "Q:\dev\devtools\database\bin"),
             @("Q:\dev\devtools\database\include\fbird", "Q:\dev\devtools\database\lib\msvc", "Q:\dev\devtools\database\bin"),
@@ -19,8 +20,8 @@ function detectInstalledLibraries($arch, [ref]$newIncludes, [ref]$newLibs, [ref]
                                                                       "${env:DXSDK_DIR}Utilities\Bin\x64")),
             @("Q:\3rdparty\icu*\icu\lib64\..\include", "Q:\3rdparty\icu*\icu\lib64", "Q:\3rdparty\icu*\icu\bin64"),
             # @("Q:\3rdparty\openssl64\include", "Q:\3rdparty\openssl64\lib", "Q:\3rdparty\openssl64\bin"),
-            @("${env:THIRDPARTYPATH}\openssl-1.0.1e\include", "${env:THIRDPARTYPATH}\openssl-1.0.1e\lib", "${env:THIRDPARTYPATH}\openssl-1.0.1e\bin")
-            
+            @("${env:THIRDPARTYPATH}\openssl-1.0.1e\include", "${env:THIRDPARTYPATH}\openssl-1.0.1e\lib", "${env:THIRDPARTYPATH}\openssl-1.0.1e\bin"),
+            @("${env:THIRDPARTYPATH}\openssl-1.0.1i\include", "${env:THIRDPARTYPATH}\openssl-1.0.1i\lib", "${env:THIRDPARTYPATH}\openssl-1.0.1i\bin")
         )
     }
 
@@ -307,7 +308,7 @@ function SetCmdEx($version = "7.1", $arch = "x86")
 	}
     $BatchFile = $null
     $SetEnv_arch = $null
-    if ($version -eq "2013expr") {
+    if ($version -eq "2013") {      # Works for both VS 2013 Professional and VS 2013 Express
         $BatchFile = "C:\Program Files (x86)\Microsoft Visual Studio 12.0\VC\vcvarsall.bat"
 # "C:\Program Files (x86)\Microsoft Visual Studio 12.0\Common7\Tools\VsDevCmd.bat"
         if ($arch -eq "amd64") {
@@ -403,7 +404,7 @@ sjarve@gmail.com
     } elseif ($compilerSpec -eq "msc16") {
         $compilerSpec = "msvc2010"
     } elseif ($compilerSpec -eq "msc18") {
-        $compilerSpec = "msvc2013expr"
+        $compilerSpec = "msvc2013"
     }
     if ($arch -eq "x86") {
         $env:THIRDPARTYPATH="Q:\3rdparty\x86"
@@ -417,8 +418,8 @@ sjarve@gmail.com
         "none" {
             $foundCompiler = SetCmdEx "none"
         }
-        "msvc2013expr" {
-            $foundCompiler = SetCmdEx "2013expr" $arch
+        "msvc2013" {
+            $foundCompiler = SetCmdEx "2013" $arch
         }
         "msvc2010" {
             $foundCompiler = SetCmdEx "7.1" $arch
