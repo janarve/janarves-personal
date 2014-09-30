@@ -1,4 +1,4 @@
-param([string]$issueNumberOrSubdir)
+param([switch]$p, [string]$issueNumberOrSubdir)
 
 function GetGitCurrentBranch()
 {
@@ -30,6 +30,15 @@ if ($issueNumberOrSubdir) {
     if ($guessedFromCurrentBranch) {
         Write-Host "No argument given, trying to deduct issue from current branch name ($issueNumberOrSubDir)"
     }
-    Write-Host "$issueNumberOrSubdir not found in $issueDirs"
+	if ($p) {
+        $newIssuePath = $issueDirs[0] + "\QTBUG-$issueNumberOrSubdir"
+        Write-Host $newIssuePath
+        New-Item -type directory -path "$newIssuePath"
+        if (Test-Path $newIssuePath) {
+            Set-Location $newIssuePath
+        }
+    } else {
+		Write-Host "$issueNumberOrSubdir not found in $issueDirs"
+	}
     return
 }
