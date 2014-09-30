@@ -27,11 +27,11 @@ Push-Location $QTDIR
 
 Set-Location ..
 
-.\qtrepotools\bin\qt5_tool -c --Branch stable
+.\qtrepotools\bin\qt5_tool -c
 if ($pull) {
-    .\qtrepotools\bin\qt5_tool -p --Branch stable
+    .\qtrepotools\bin\qt5_tool -p
 }
 $start = Get-Date
-.\qtrepotools\bin\qt5_tool -b --Branch stable
+.\qtrepotools\bin\qt5_tool -b
 (Get-Date) - $start
 Pop-Location
