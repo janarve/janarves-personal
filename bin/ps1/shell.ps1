@@ -28,6 +28,9 @@ function detectTools()
     } elseif (Test-Path "C:\Perl\bin") {
         $env:Path = "C:\Perl\bin;" + $env:PATH
         Write-Host " C:\Perl"
+    } elseif (Test-Path "C:\strawberry\perl\bin\perl.exe") {
+#        $env:Path = "C:\strawberry\perl\bin;" + $env:PATH
+        Write-Host " C:\strawberry\perl\bin"
     } else {
         Write-Host " Not found"
     }
@@ -41,7 +44,13 @@ function detectTools()
         $env:Path = "C:\Python26;" + $env:Path
         Write-Host " C:\Python26"
     } else {
-        Write-Host " Not found"
+        $p = (Resolve-Path C:\Python*).Path
+        if ($p -eq $null) {
+            Write-Host " Not found"
+        } else {
+            $env:Path = "$p;" + $env:Path
+            Write-Host " $p"
+        }
     }
 
     ### Detect Ruby (needed for webkit)
@@ -76,6 +85,24 @@ function e($path)
     explorer $path
 }
 
+function which($name)
+{
+    try {
+		$res = Get-Command -CommandType Application -Name $name -ErrorAction "Stop" | Select-Object -ExpandProperty Definition
+		return $res
+	 } catch {
+        return $null
+    }
+    return $null
+}
+
+function Set-ProcessPriority { 
+    param($processName = $(throw "Enter process name"), $priority = "Normal")
+
+    get-process -processname $processname | foreach { $_.PriorityClass = $priority }
+    write-host "`"$($processName)`"'s priority is set to `"$($priority)`""
+}
+
 #. utils.ps1
 detectTools
 
@@ -87,7 +114,9 @@ $env:Path+=";C:\Program Files (x86)\Git\bin"
 
 $env:ARTISTIC_STYLE_OPTIONS="$env:USERPROFILE\astylerc"
 $env:QT_MESSAGE_PATTERN="%{file}(%{line}):%{message}"
-$env:GIT_TEMPLATE_DIR="Q:\dev\devtools\git\template"
+#$env:QT_LOGGING_RULES="qt.qpa.accessibility=true"
+
+$env:GIT_TEMPLATE_DIR="Q:\dev\personal\config\git_template_dir"
 
 # eeew... Get rid of symbian toolchain (might confuse mingw)
 $env:Path = $env:Path.replace("C:\Program Files (x86)\Common Files\Symbian\tools;", "")
@@ -132,7 +161,9 @@ $env:GIT_PUSH="spell"
 
 . 'qttabexp.ps1'
 
-Set-Compiler msvc2013expr
+Set-Compiler msvc2013
 setqt .
 
 $env:CL += " /MP"
+
+
