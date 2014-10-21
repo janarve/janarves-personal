@@ -25,7 +25,7 @@ sub usage()
 
 }
 
-sub printGroup
+sub printprintGroup
 {
     my ($test_group, $indent) = @_;
     my @tests = testsForGroup($test_group);
@@ -46,10 +46,10 @@ my %result = do $file;
 die "Probable syntax error $file\n" unless (%result);
 my %test_groups = %result;
 
-my $qtdir = $ENV{"QTDIR"};
-if ($qtdir) {
-    $qtdir =~ tr,\\,/,;
-}
+my $testsDir = `qmake -query QT_INSTALL_TESTS`;
+$testsDir =~ tr,\\,/,;
+$testsDir =~ s/^\s+|\s+$//g;
+
 my @user_groups;
 my $config = "debug";
 my $filter = 1;
@@ -100,7 +100,7 @@ if (scalar(@user_groups) eq 0) {
             # Check if the test exist, if not build it
             my $rebuild = ($opt eq "rebuild" ? 1 : 0);
             foreach my $test(@tests) {
-                printf("BUILDING %-30s", $test);
+                printf("BUILDING %-30s\n", $test);
                 runMake($test, $config, $rebuild);
             }
             
@@ -110,9 +110,16 @@ if (scalar(@user_groups) eq 0) {
             my $skipped = 0;
             printf("RUNNING  %29s |PASS|FAIL|SKIP|\n", " ");
             foreach my $test(@tests) {
-                my $cmd = "$qtdir/tests/auto/$test/$config/tst_$test.exe";
+                my $ri = rindex($test, "/");
+                my $exeqtable = "";
+                if ($ri eq -1)  {
+                    $exeqtable = $test;
+                } else {
+                    $exeqtable = substr($test, $ri + 1);
+                }
+                my $cmd = "$testsDir/auto/$test/$config/tst_$exeqtable.exe";
                 if (-e $cmd) {
-                    printf("RUNNING  %-30s", $test);
+                    printf("RUNNING  %-30s", $exeqtable);
                     if ($filter eq 1) {
                         my $_ = `$cmd`;
                         if (/Totals: (\d+) passed, (\d+) failed, (\d+) skipped/) {
@@ -126,7 +133,7 @@ if (scalar(@user_groups) eq 0) {
                     }
                 }
             }
-            printf("SUMMARY  %29s |%4d|%4d|%4d|", " ", $passed, $failed, $skipped)
+            printf("SUMMARY  %29s |%4d|%4d|%4d|\n", " ", $passed, $failed, $skipped)
         }
     }
 }
@@ -156,11 +163,20 @@ sub runMake
     my $testName = shift;
     my $config = shift;
     my $rebuild = shift;
-    my $cmd = "$qtdir/tests/auto/$testName/$config/tst_$testName.exe";
+
+    my $ri = rindex($testName, "/");
+    my $exeqtable = "";
+    if ($ri eq -1)  {
+        $exeqtable = $testName;
+    } else {
+        $exeqtable = substr($testName, $ri + 1);
+    }
+
+    my $cmd = "$testsDir/auto/$testName/$config/tst_$exeqtable.exe";
     if (! $rebuild) {
         if (! -e $cmd) {
             print ("Could not find $testName, rebuilding");
-            chdir("$qtdir/tests/auto/$testName");
+            chdir("$testsDir/auto/$testName");
             system("qmake");
             `$makeprog debug`;
         } else {
